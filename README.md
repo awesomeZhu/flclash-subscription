@@ -28,7 +28,8 @@ out/nodes.txt                 ← 纯文本清单：IP / 端口 / 协议 / 延�
 | 国内一般能开（jsDelivr） | `https://cdn.jsdelivr.net/gh/<用户名>/<仓库名>@main/out/flclash-free-nodes.yaml` |
 | 另一个加速镜像 | `https://ghfast.top/https://raw.githubusercontent.com/<用户名>/<仓库名>/main/out/flclash-free-nodes.yaml` |
 
-> 分支名如果不是 `main`（老仓库是 `master`），URL 里相应改掉。
+> **分支名要写对**：新建仓库默认是 `main`，但你这个仓库的分支是 **`master`**，所以地址里要写 `/master/`，否则 404。
+> 不确定就看仓库首页左上角的 branch 下拉框。
 
 ## 导入 FLClash
 
@@ -89,16 +90,19 @@ out/nodes.txt                  # 文本清单
 
 ## Actions 跑失败了怎么查
 
-日志里每个阶段都带序号和耗时（`[1/7] 抓取` → `[7/7] 生成配置并校验`），**看最后一个打出来的序号就知道卡在哪**：
+**先看 Actions 页面顶部的 Annotations**：脚本会把失败原因（含 traceback）直接写成一条 `error` 注解，不用点进日志。
+要看细节再展开失败的步骤，日志里每个阶段都带序号和耗时（`[1/7] 抓取` → `[7/7] 生成配置并校验`），**最后一个打出来的序号就是卡住的位置**。
 
 | 现象 | 原因 | 处理 |
 | --- | --- | --- |
 | 卡在 `[1/7]`，全 `[skip]` | 抓取被限流/被墙 | 已内置 jsDelivr、ghfast 两条镜像，一般不会再发生；偶发直接重跑 |
-| `[3/7]` 报 `mihomo 无法执行` | 内核下载损坏 | 重跑即可（脚本会重新下载并预检） |
+| `[3/7]` 报 `mihomo 下载/启动全部失败` | 内核下载被拦 | 注解里会列出每个资源名 + 每条通道的失败原因；脚本已带版本兜底与镜像 |
+| `[4/7]` 打印 `内核可见代理: 0 / N` | 内核没加载到节点 | 通常是内核启动失败，注解里带内核日志尾部 |
+| `[4/7]` 打印 `直连自测: 失败` | runner 到测试地址不通 | 脚本会自动换 `cp.cloudflare.com` 和 https 地址重试 |
 | 卡在 `[4/7]` 很久然后 `可用节点过少` | 当天上游确实没活节点 | 正常波动；脚本会失败退出、**不覆盖**旧配置 |
 | `配置校验失败` 且提到 `GeoSite`/`GeoIP` | 地理库下载失败 | 脚本会自动降级为结构校验，通常仍是绿色通过 |
 | 最后一步 `提交并推送` 报 `403` / `Permission denied` | 没开写权限 | Settings → Actions → General → Workflow permissions → Read and write |
-| 报 `Node.js 20 is deprecated`、`ubuntu-latest 将迁移` | 只是提示，不影响 | 已把 action 升到 v5/v6，可忽略 |
+| 报 `Node.js 20 is deprecated`、`ubuntu-latest 将迁移` | 只是提示，不影响 | action 已升到 v5/v6/v6，可忽略 |
 
 ## 几个坑
 

@@ -67,6 +67,13 @@ def log(msg):
     print(msg, flush=True)
 
 
+def annotate(msg):
+    """把错误写成 GitHub Actions 注解：失败时在 Actions 页面顶部直接可见，无需点进日志。
+    本地运行时这只是一行普通输出。"""
+    safe = str(msg).replace("%", "%25").replace("\r", "").replace("\n", "%0A")
+    print("::error title=流水线失败::%s" % safe[:6000], flush=True)
+
+
 def http_get(url, timeout=40, retries=2, backoff=1.5):
     """带重试和指数退避的下载；失败时抛出带状态码的异常"""
     last = None
@@ -175,45 +182,87 @@ def dedupe_key(p):
 
 
 # ---------------------------------------------------------------- 3. mihomo
+MIHOMO_FALLBACK_TAG = "v1.19.33"   # 上游 API/重定向都拿不到版本时的兜底
+
+
+def _resolve_tag():
+    """先问 API，再读 releases/latest 的重定向，最后退回固定版本；任何一步失败都不致命"""
+    try:
+        j = json.loads(http_get("https://api.github.com/repos/MetaCubeX/mihomo/releases/latest",
+                                timeout=20, retries=0, backoff=1).decode())
+        t = j.get("tag_name")
+        if t and str(t).startswith("v"):
+            return t
+    except Exception as e:  # noqa: BLE001
+        log("  [warn] 查询 mihomo 最新版失败（API）: %s" % str(e)[:70])
+    try:
+        req = urllib.request.Request("https://github.com/MetaCubeX/mihomo/releases/latest", headers=UA)
+        t = urllib.request.urlopen(req, timeout=25).geturl().rstrip("/").split("/")[-1]
+        if t and t.startswith("v"):
+            return t
+        log("  [warn] 重定向里没解析出版本号: %r" % t[:40])
+    except Exception as e:  # noqa: BLE001
+        log("  [warn] 查询 mihomo 最新版失败（重定向）: %s" % str(e)[:70])
+    log("  [warn] 使用兜底版本 %s" % MIHOMO_FALLBACK_TAG)
+    return MIHOMO_FALLBACK_TAG
+
+
+def _asset_names(tag):
+    if os.name == "nt":
+        return ["mihomo-windows-amd64-%s.zip" % tag,
+                "mihomo-windows-amd64-compatible-%s.zip" % tag]
+    return ["mihomo-linux-amd64-compatible-%s.gz" % tag,
+            "mihomo-linux-amd64-%s.gz" % tag,
+            "mihomo-linux-amd64-compatible-%s.zip" % tag,
+            "mihomo-linux-amd64-%s.zip" % tag]
+
+
+def _unpack(data, dst, name):
+    """按扩展名解压出可执行文件"""
+    if name.endswith(".gz"):
+        binary = gzip.decompress(data)
+    else:
+        with zipfile.ZipFile(io.BytesIO(data)) as z:
+            inner = [n for n in z.namelist()
+                     if n.endswith((".exe", "")) and not n.endswith("/") and "mihomo" in os.path.basename(n).lower()]
+            if not inner:
+                inner = [n for n in z.namelist() if n.endswith(".exe") or "/mihomo" in n]
+            binary = z.read(inner[0])
+    if len(binary) < 5 * 1024 * 1024:
+        raise RuntimeError("解压后只有 %d 字节，不像是内核" % len(binary))
+    with open(dst, "wb") as f:
+        f.write(binary)
+    if os.name != "nt":
+        os.chmod(dst, 0o755)
+
+
 def mihomo_path():
     exe = "mihomo.exe" if os.name == "nt" else "mihomo"
     p = os.path.join(CACHE, "bin", exe)
-    if os.path.isfile(p):
+    if os.path.isfile(p) and os.path.getsize(p) > 5 * 1024 * 1024:
         return p
     os.makedirs(os.path.dirname(p), exist_ok=True)
-    tag = None
-    try:
-        j = json.loads(http_get("https://api.github.com/repos/MetaCubeX/mihomo/releases/latest").decode())
-        tag = j["tag_name"]
-    except Exception:  # noqa: BLE001
-        req = urllib.request.Request("https://github.com/MetaCubeX/mihomo/releases/latest", headers=UA)
-        tag = urllib.request.urlopen(req, timeout=30).geturl().rstrip("/").split("/")[-1]
-    log("  mihomo %s" % tag)
-    if os.name == "nt":
-        name = "mihomo-windows-amd64-%s.zip" % tag
-        data = http_get("https://github.com/MetaCubeX/mihomo/releases/download/%s/%s" % (tag, name), 180)
-        with zipfile.ZipFile(io.BytesIO(data)) as z:
-            inner = [n for n in z.namelist() if n.endswith(".exe")][0]
-            open(p, "wb").write(z.read(inner))
-    else:
-        name = "mihomo-linux-amd64-compatible-%s.gz" % tag
-        data = http_get("https://github.com/MetaCubeX/mihomo/releases/download/%s/%s" % (tag, name), 180)
-        binary = gzip.decompress(data)
-        if len(binary) < 5 * 1024 * 1024:
-            raise RuntimeError("mihomo 下载内容异常（%d 字节）" % len(binary))
-        with open(p, "wb") as f:
-            f.write(binary)
-        os.chmod(p, 0o755)
 
-    # 预检：确认二进制能跑起来，避免后续用晦涩的报错失败
-    try:
-        r = subprocess.run([p, "-v"], capture_output=True, text=True, timeout=60)
-        log("  " + ((r.stdout or r.stderr or "").strip().splitlines() or ["mihomo 已就绪"])[0])
-    except Exception as e:  # noqa: BLE001
-        size = os.path.getsize(p) if os.path.exists(p) else 0
-        raise RuntimeError("mihomo 无法执行（%s %s，%d 字节）：%s"
-                           % (platform.system(), platform.machine(), size, e))
-    return p
+    tag = _resolve_tag()
+    log("  mihomo 版本: %s" % tag)
+    errors = []
+    for name in _asset_names(tag):
+        for base in ("https://github.com/MetaCubeX/mihomo/releases/download/",
+                     "https://ghfast.top/https://github.com/MetaCubeX/mihomo/releases/download/"):
+            url = "%s%s/%s" % (base, tag, name)
+            try:
+                data = http_get(url, timeout=180, retries=1, backoff=1)
+                _unpack(data, p, name)
+                r = subprocess.run([p, "-v"], capture_output=True, text=True, timeout=60)
+                ver = ((r.stdout or r.stderr or "").strip().splitlines() or ["mihomo 已就绪"])[0]
+                log("  " + ver)
+                return p
+            except Exception as e:  # noqa: BLE001
+                errors.append("%s -> %s" % (name, str(e)[:70]))
+                if os.path.exists(p) and os.path.getsize(p) < 5 * 1024 * 1024:
+                    os.remove(p)
+    raise RuntimeError("mihomo 下载/启动全部失败（%s %s）：\n  %s"
+                       % (platform.system(), platform.machine(), "\n  ".join(errors)))
 
 
 def yaml_emit(lines, obj, indent):
@@ -333,9 +382,10 @@ def probe_delay(ctl, name, timeout_ms, test_url):
         ctl, urllib.parse.quote(name), timeout_ms, q)
     try:
         with urllib.request.urlopen(u, timeout=timeout_ms / 1000.0 + 6) as r:
-            return json.loads(r.read().decode()).get("delay")
-    except Exception:  # noqa: BLE001
-        return None
+            data = json.loads(r.read().decode())
+        return data.get("delay"), None
+    except Exception as e:  # noqa: BLE001
+        return None, str(e)[:120]
 
 
 def measure(exe, proxies, workdir, workers, rounds, timeout_ms, test_url):
@@ -347,20 +397,36 @@ def measure(exe, proxies, workdir, workers, rounds, timeout_ms, test_url):
     write_test_config(cfg, proxies, port, ctl)
     proc = start_core(exe, cfg, workdir, ctl, os.path.join(workdir, "core.log"))
     try:
+        # 诊断：内核到底认到几个代理？直连能不能通？—— 排查“0 存活”时非常关键
+        try:
+            api = json.loads(urllib.request.urlopen("http://127.0.0.1:%d/proxies" % ctl, timeout=10).read())
+            visible = [k for k in api.get("proxies", {}) if k.startswith("n") and len(k) == 5]
+            log("  内核可见代理: %d / %d" % (len(visible), len(proxies)))
+        except Exception as e:  # noqa: BLE001
+            log("  [warn] 读取 /proxies 失败: %s" % str(e)[:100])
+        d, err = probe_delay(ctl, "DIRECT", timeout_ms, test_url)
+        log("  直连自测: %s" % ("%dms" % d if d else "失败 -> %s" % err))
+
         table = {p["__id"]: [] for p in proxies}
+        errs = []
         for rnd in range(rounds):
             t0 = time.time()
             done = 0
             with ThreadPoolExecutor(max_workers=workers) as ex:
                 futs = {ex.submit(probe_delay, ctl, p["__id"], timeout_ms, test_url): p["__id"] for p in proxies}
                 for f in as_completed(futs):
-                    table[futs[f]].append(f.result())
+                    d, err = f.result()
+                    table[futs[f]].append(d)
+                    if err and len(errs) < 3:
+                        errs.append("%s: %s" % (futs[f], err))
                     done += 1
                     if done % 500 == 0:
                         alive = sum(1 for v in table.values() if any(x for x in v))
                         log("    轮次 %d: %d/%d  存活 %d  %.0fs" % (rnd + 1, done, len(proxies), alive, time.time() - t0))
             log("  轮次 %d 完成，%.0fs，存活 %d" % (rnd + 1, time.time() - t0,
                                                 sum(1 for v in table.values() if any(v))))
+        for e in errs:
+            log("  探测错误样例 -> %s" % e)
     finally:
         proc.terminate()
         try:
@@ -499,18 +565,20 @@ def build(nodes, geo, out_path, workers_note):
     order += [lbl for lbl in ("🇪🇺 欧洲", "🌍 其他") if lbl in regions]
 
     main_pool = https_names or http_names          # 正常情况下自动选择只用 HTTPS 验证过的
+    check_url = ("https://www.gstatic.com/generate_204" if https_names
+                 else "http://www.gstatic.com/generate_204")
     groups = [
         {"name": "🚀 节点选择", "type": "select",
          "proxies": (["♻️ 自动选择", "🔯 故障转移"] + order + ["🎯 全球直连"]
                      + (["🌐 备用（仅 HTTP）"] if http_names else [])
                      + all_names)},
-        {"name": "♻️ 自动选择", "type": "url-test", "url": "https://www.gstatic.com/generate_204",
+        {"name": "♻️ 自动选择", "type": "url-test", "url": check_url,
          "interval": 300, "tolerance": 50, "lazy": False, "proxies": main_pool},
-        {"name": "🔯 故障转移", "type": "fallback", "url": "https://www.gstatic.com/generate_204",
+        {"name": "🔯 故障转移", "type": "fallback", "url": check_url,
          "interval": 300, "proxies": main_pool[:20]},
     ]
     for lbl in order:
-        groups.append({"name": lbl, "type": "url-test", "url": "https://www.gstatic.com/generate_204",
+        groups.append({"name": lbl, "type": "url-test", "url": check_url,
                        "interval": 300, "tolerance": 50, "proxies": regions[lbl]})
     groups.append({"name": "🎯 全球直连", "type": "select", "proxies": ["DIRECT"]})
     groups.append({"name": "🛑 广告拦截", "type": "select", "proxies": ["REJECT", "DIRECT"]})
@@ -655,6 +723,7 @@ def main():
         log("没有可用节点源，退出。失败原因：")
         for repo, errs in failed[:5]:
             log("  - %s: %s" % (repo, errs))
+        annotate("所有节点源都抓取失败：%s" % ("; ".join("%s: %s" % (r, e) for r, e in failed[:4])))
         return 1
 
     log("[2/7] 解析 / 清洗 / 去重")
@@ -683,6 +752,7 @@ def main():
     log("  去重后候选: %d（用时 %.1fs）" % (len(merged), time.time() - t_parse))
     if len(merged) < args.min_nodes:
         log("候选节点过少，退出")
+        annotate("候选节点只有 %d 个，少于阈值 %d" % (len(merged), args.min_nodes))
         return 1
 
     log("[3/7] 内核校验")
@@ -696,12 +766,18 @@ def main():
 
     http_url = "http://www.gstatic.com/generate_204"
     https_url = "https://www.gstatic.com/generate_204"
+    fallback_url = "http://cp.cloudflare.com/generate_204"
 
-    log("[4/7] 初筛：真实请求（%d 线程，1 轮，HTTP）" % args.workers)
-    quick = measure(exe, merged, work, args.workers, 1, args.timeout, http_url)
-    log("  初筛存活: %d / %d" % (len(quick), len(merged)))
+    log("[4/7] 初筛：真实请求（%d 线程，1 轮）" % args.workers)
+    quick = {}
+    for url in (http_url, fallback_url, https_url):
+        quick = measure(exe, merged, work, args.workers, 1, args.timeout, url)
+        log("  探测地址 %-42s 存活 %d / %d" % (url, len(quick), len(merged)))
+        if len(quick) >= args.min_nodes:
+            break
     if len(quick) < args.min_nodes:
         log("可用节点过少，退出（不下发新配置）")
+        annotate("初筛可用节点只有 %d 个（内核可见 %d 个），判断为网络/内核问题" % (len(quick), len(merged)))
         return 1
     candidates = [p for p in merged if p["__id"] in quick]
 
@@ -711,8 +787,8 @@ def main():
                           max(args.timeout, 5000), https_url)
     log("  复测存活: %d / %d" % (len(nodes_delay), len(candidates)))
     if len(nodes_delay) < args.min_nodes:
-        log("可用节点过少，退出（不下发新配置）")
-        return 1
+        log("  [warn] HTTPS 复测通过数不足，回退：全部候选都按“仅 HTTP”处理（不下发空配置）")
+        nodes_delay = {}
     # 只过了 HTTP 的节点不丢，归到“备用（仅 HTTP）”组
     for p in candidates:
         p["__tier"] = "https" if p["__id"] in nodes_delay else "http"
@@ -737,8 +813,19 @@ def main():
 
     ok = validate_output(exe, args.out, os.path.join(work, "final"))
     log("总耗时 %.0fs" % (time.time() - t_all))
+    if not ok:
+        annotate("生成的配置没通过内核校验，已保留上一版，不覆盖")
     return 0 if ok else 1
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    try:
+        sys.exit(main())
+    except SystemExit:
+        raise
+    except BaseException:  # noqa: BLE001
+        import traceback
+        tb = traceback.format_exc()
+        print(tb, flush=True)
+        annotate("未捕获异常，traceback 末尾：" + tb.strip()[-1500:])
+        sys.exit(1)

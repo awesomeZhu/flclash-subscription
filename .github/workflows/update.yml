@@ -36,7 +36,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install -r requirements.txt
-          python -c "import yaml; print('PyYAML', yaml.__version__)"
+          python -c "import sys, yaml; print(sys.version); print('PyYAML', yaml.__version__)"
 
       - name: 抓取 + 测速 + 生成配置
         env:
@@ -44,20 +44,34 @@ jobs:
           PYTHONUNBUFFERED: "1"
           PYTHONIOENCODING: utf-8
         run: |
-          python scripts/pipeline.py --workers 128 --rounds 2 --timeout 3000
+          set -o pipefail
+          python -u scripts/pipeline.py --workers 128 --rounds 2 --timeout 3000 2>&1 | tee pipeline.log
+
+      # 失败时把日志尾部写进注解：这样在 Actions 页面顶部“Annotations”里就能直接看到报错
+      - name: 失败时输出错误摘要
+        if: failure()
+        run: |
+          if [ -f pipeline.log ]; then
+            MSG=$(tail -n 40 pipeline.log | sed -e 's/%/%25/g' | awk '{printf "%s%%0A", $0}' | cut -c1-6000)
+            echo "::error title=流水线失败（最后 40 行）::$MSG"
+          else
+            echo "::error title=流水线失败::pipeline.log 未生成，失败发生在上传/安装等更早的步骤"
+          fi
 
       - name: 上传产物（保留 7 天，方便回溯）
         if: always()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: nodes-${{ github.run_id }}
           path: |
             out/flclash-free-nodes.yaml
             out/nodes.txt
+            pipeline.log
           retention-days: 7
           if-no-files-found: warn
 
       - name: 提交并推送
+        if: success()
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
