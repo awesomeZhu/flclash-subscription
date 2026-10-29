@@ -44,11 +44,6 @@ SOURCES = [
     ("cysk003/freeSub", "main", "clash.yaml"),
     ("ts-sf/fly", "main", "clash"),
     ("free18/v2ray", "main", "c.yaml"),
-    ("vveg26/get_proxy", "main", "dist/clash.config.yaml"),
-    ("mfuu/v2ray", "master", "clash.yaml"),
-    ("sunmiao4458/free-proxy-airport", "main", "clash.yaml"),
-    ("Flik6/Free-Node", "main", "clash.yaml"),
-    ("lanzm/MetaFetch", "main", "output/clash.yaml"),
 ]
 
 ALLOWED_TYPES = {"ss", "ssr", "vmess", "vless", "trojan", "hysteria", "hysteria2", "tuic",
@@ -75,14 +70,20 @@ def annotate(msg):
 
 
 def http_get(url, timeout=40, retries=2, backoff=1.5):
-    """带重试和指数退避的下载；失败时抛出带状态码的异常"""
+    """带重试和指数退避的下载；失败时抛出带状态码的异常。
+
+    注意：只有在服务器明确用 Content-Encoding: gzip 传输压缩内容时才解压。
+    绝不能靠魔数 1f 8b 判断 —— 内核的 .gz 发布包本身就是 gzip，靠魔数会把
+    “下载到的 .gz” 提前解成 ELF，调用方再解一次就报 Not a gzipped file。
+    """
     last = None
     for i in range(retries + 1):
         try:
             req = urllib.request.Request(url, headers=UA)
             with urllib.request.urlopen(req, timeout=timeout) as r:
                 data = r.read()
-            if data[:2] == b"\x1f\x8b":
+                enc = (r.headers.get("Content-Encoding") or "").lower()
+            if "gzip" in enc and data[:2] == b"\x1f\x8b":
                 data = gzip.decompress(data)
             return data
         except Exception as e:  # noqa: BLE001
@@ -218,16 +219,22 @@ def _asset_names(tag):
 
 
 def _unpack(data, dst, name):
-    """按扩展名解压出可执行文件"""
-    if name.endswith(".gz"):
+    """解压出可执行文件。按内容嗅探而不是只看扩展名：
+    1f 8b = gzip，50 4b = zip，7f 45 4c 46 = 已经是 ELF（Linux 可执行），4d 5a = PE（Windows）。"""
+    head = data[:4]
+    if head[:2] == b"\x1f\x8b":
         binary = gzip.decompress(data)
-    else:
+    elif head[:2] == b"PK":
         with zipfile.ZipFile(io.BytesIO(data)) as z:
             inner = [n for n in z.namelist()
-                     if n.endswith((".exe", "")) and not n.endswith("/") and "mihomo" in os.path.basename(n).lower()]
+                     if not n.endswith("/") and "mihomo" in os.path.basename(n).lower()]
             if not inner:
-                inner = [n for n in z.namelist() if n.endswith(".exe") or "/mihomo" in n]
+                inner = [n for n in z.namelist() if n.endswith(".exe") or n.endswith("/mihomo")]
             binary = z.read(inner[0])
+    elif head == b"\x7fELF" or head[:2] == b"MZ":
+        binary = data                      # 服务器直接给了可执行文件，无需解压
+    else:
+        raise RuntimeError("无法识别的内核文件格式: %r..." % head)
     if len(binary) < 5 * 1024 * 1024:
         raise RuntimeError("解压后只有 %d 字节，不像是内核" % len(binary))
     with open(dst, "wb") as f:
