@@ -4,3 +4,6 @@ __pycache__/
 *.pyc
 *.log
 tmp*/
+selfhost-node.json
+selfhost/selfhost-node.json
+selfhost/test-output.yaml
