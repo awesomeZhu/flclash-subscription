@@ -64,7 +64,11 @@ jobs:
           else
             OUT_ARGS="--out out/flclash-free-nodes.yaml"
           fi
-          python -u scripts/pipeline.py --workers 128 --rounds 2 --timeout 3000 $OUT_ARGS 2>&1 | tee pipeline.log
+          # --max-delay 200      : 全球统一门槛（机房到节点）
+          # --max-delay-asia 400 : 港澳台日韩新单独放宽，因为机房在美国、它们天然 200ms+，
+          #                        但你在国内用其实很快；不想要就用 --max-delay-asia 0
+          python -u scripts/pipeline.py --workers 128 --rounds 2 --timeout 3000 \
+            --max-delay 200 --max-delay-asia 400 $OUT_ARGS 2>&1 | tee pipeline.log
 
       # 合并版含密钥，只推到私有 Gist；公开仓库里永远只有免费节点
       - name: 发布合并订阅到私有 Gist（可选）

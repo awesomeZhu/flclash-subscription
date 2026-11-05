@@ -707,6 +707,8 @@ EU = {"NL", "DE", "GB", "FR", "IT", "RU", "CH", "SE", "CZ", "LV", "AT", "IE", "F
 # 下发优先级与名字后缀：只有 full 会进主池，其余只是可选收纳
 TIER_RANK = {"full": 0, "slow": 1, "gonly": 2}
 TIER_TAG = {"full": "", "slow": " ·高延迟", "gonly": " ·仅谷歌"}
+# 亚太地区：CI 机房在美国，这些节点“机房延迟”天然偏高，但国内用其实快，单独给宽门槛
+ASIA = {"HK", "TW", "JP", "SG", "KR", "MO"}
 
 
 def region_of(cc):
@@ -811,6 +813,9 @@ def build(nodes, geo, out_path, workers_note, selfhost=None, public_path=None):
             "#   且延迟 ≤ %dms —— 打不开的直接不下发，导入后不用再自己一个个试。" % DELAY_GATE,
             "# 本文件由 GitHub Actions 自动生成，请勿手工修改",
         ]
+        if DELAY_GATE_ASIA:
+            lines.insert(len(lines) - 1, "#   港澳台日韩新单独放宽到 ≤ %dms（机房到节点的延迟，你在国内用会更快）"
+                         % DELAY_GATE_ASIA)
         if sh:
             lines.append("# ⚠️ 本文件含自建节点密钥，请勿公开（仅用于私有 Gist）")
         lines.append("")
@@ -905,6 +910,7 @@ def build(nodes, geo, out_path, workers_note, selfhost=None, public_path=None):
 
 nodes_delay = {}
 DELAY_GATE = 200      # 延迟门槛（ms），由 main() 按 --max-delay 覆盖，仅用于写进配置注释
+DELAY_GATE_ASIA = 0   # 亚太单独门槛，由 main() 按 --max-delay-asia 覆盖
 
 # mihomo 校验 GEOSITE/GEOIP 规则时需要地理库；默认会自己去 GitHub 下载，
 # 一旦下载失败整个配置校验就失败 —— 所以这里先带镜像把它预置好。
@@ -996,6 +1002,9 @@ def main():
     ap.add_argument("--min-nodes", type=int, default=5)
     ap.add_argument("--max-delay", type=int, default=200,
                     help="延迟门槛（毫秒）：谷歌 204 的中位延迟超过它就下发时丢弃，默认 200")
+    ap.add_argument("--max-delay-asia", type=int, default=0,
+                    help="亚太节点（港澳台日韩新）单独放宽到 N ms，0=不区分。"
+                         "CI 在美国机房，港日节点在那边天然 200ms+，但在国内用很快")
     ap.add_argument("--verify-rounds", type=int, default=2,
                     help="严格验证时每个站点的探测轮数，默认 2")
     ap.add_argument("--verify-timeout", type=int, default=5000,
@@ -1097,8 +1106,9 @@ def main():
         (args.verify_rounds, args.max_delay))
     min_hits = args.min_hits or args.verify_rounds
     min_hits = max(1, min(min_hits, args.verify_rounds))
-    global nodes_delay, DELAY_GATE
+    global nodes_delay, DELAY_GATE, DELAY_GATE_ASIA
     DELAY_GATE = args.max_delay
+    DELAY_GATE_ASIA = args.max_delay_asia
     verified, vstat = verify_sites(exe, candidates, work, min(args.workers, 64),
                                    args.verify_rounds, args.verify_timeout,
                                    args.max_delay, min_hits)
@@ -1106,15 +1116,42 @@ def main():
         log("  严格验证无法进行：%s" % vstat["fatal"])
         annotate("严格验证无法进行：%s" % vstat["fatal"])
         return 1
-    log("  谷歌+YouTube 都通，且延迟 ≤%dms: %d 个 ✔" % (args.max_delay, vstat["full"]))
-    log("  延迟超标（>%dms）: %d 个%s" % (args.max_delay, vstat["slow"],
-                                     "，已保留" if args.keep_slow else "，丢弃"))
-    log("  YouTube 不通（仅谷歌）: %d 个%s" % (vstat["gonly"],
-                                          "，已保留" if args.keep_gonly else "，丢弃"))
+    log("[6/7] 查询归属地（先查，因为亚太门槛要看国家）")
+    t_geo = time.time()
+    geo = geolocate([str(p.get("server")) for p in candidates])
+    log("  已知归属: %d / %d（用时 %.1fs）" % (sum(1 for v in geo.values() if v["cc"]), len(geo),
+                                        time.time() - t_geo))
+
+    # 亚太放宽：CI 机房在美国，港澳台日韩新节点在那边天然 200ms+，你在国内用反而很快，
+    # 所以给它们单独一个更宽的门槛（--max-delay-asia），别被 200ms 一刀切掉
+    if args.max_delay_asia > 0:
+        promoted = 0
+        for p in candidates:
+            info = verified.get(p["__id"])
+            if not info or info["tier"] != "slow" or info["delay"] > args.max_delay_asia:
+                continue
+            if geo.get(str(p.get("server")), {}).get("cc", "") in ASIA:
+                info["tier"] = "full"
+                promoted += 1
+        log("  亚太放宽（≤%dms）: 收回 %d 个港澳台日韩新节点" % (args.max_delay_asia, promoted))
+
+    n_full = sum(1 for v in verified.values() if v["tier"] == "full")
+    n_slow = sum(1 for v in verified.values() if v["tier"] == "slow")
+    n_gonly = sum(1 for v in verified.values() if v["tier"] == "gonly")
+    log("  谷歌+YouTube 都通，且延迟 ≤%dms: %d 个 ✔" % (args.max_delay, n_full))
+    log("  延迟超标: %d 个%s" % (n_slow, "，已保留" if args.keep_slow else "，丢弃"))
+    log("  YouTube 不通（仅谷歌）: %d 个%s" % (n_gonly, "，已保留" if args.keep_gonly else "，丢弃"))
     log("  两个站点都不通: %d 个，丢弃" % vstat["dead"])
     if vstat["youtube_only"]:
         log("  只有 YouTube 通、谷歌不通（可疑节点）: %d 个，丢弃" % vstat["youtube_only"])
-    if vstat["full"] == 0:
+    ds = sorted(info["delay"] for info in verified.values() if info["delay"])
+    if ds:
+        log("  双站都通的节点延迟分布: <100ms %d | 100-200ms %d | 200-400ms %d | 400-800ms %d | >800ms %d"
+            % (sum(1 for d in ds if d < 100), sum(1 for d in ds if 100 <= d < 200),
+               sum(1 for d in ds if 200 <= d < 400), sum(1 for d in ds if 400 <= d < 800),
+               sum(1 for d in ds if d >= 800)))
+        log("  （门槛 %dms；看着太严/太松就调 --max-delay / --max-delay-asia）" % args.max_delay)
+    if n_full == 0:
         log("  没有一个节点同时通过谷歌 + YouTube，保留上一版订阅，不下发空配置")
         annotate("严格验证后 0 个节点可同时访问谷歌和 YouTube（候选 %d 个）" % len(candidates))
         return 1
@@ -1152,13 +1189,6 @@ def main():
                 % (args.min_nodes, added))
 
     alive = [p for p in candidates if p["__id"] in nodes_delay]
-    ds = sorted(info["delay"] for info in verified.values() if info["delay"])
-    if ds:
-        log("  双站都通的节点延迟分布: <100ms %d | 100-200ms %d | 200-400ms %d | 400-800ms %d | >800ms %d"
-            % (sum(1 for d in ds if d < 100), sum(1 for d in ds if 100 <= d < 200),
-               sum(1 for d in ds if 200 <= d < 400), sum(1 for d in ds if 400 <= d < 800),
-               sum(1 for d in ds if d >= 800)))
-        log("  （当前门槛 %dms；看着太严/太松就调 --max-delay）" % args.max_delay)
     log("  本次下发节点: %d 个（初筛 %d 个，筛掉 %d 个）" % (len(alive), len(candidates),
                                                        len(candidates) - len(alive)))
     if len(alive) < args.min_nodes:
@@ -1166,12 +1196,6 @@ def main():
         annotate("严格验证后只剩 %d 个节点（门槛 %dms），少于阈值 %d；可放宽 --max-delay"
                  % (len(alive), args.max_delay, args.min_nodes))
         return 1
-
-    log("[6/7] 查询归属地")
-    t_geo = time.time()
-    geo = geolocate([str(p.get("server")) for p in alive])
-    log("  已知归属: %d / %d（用时 %.1fs）" % (sum(1 for v in geo.values() if v["cc"]), len(geo),
-                                        time.time() - t_geo))
 
     log("[7/7] 生成配置并校验")
     sh_nodes = load_selfhost(args.selfhost)
