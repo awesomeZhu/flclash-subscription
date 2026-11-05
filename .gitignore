@@ -4,6 +4,8 @@ __pycache__/
 *.pyc
 *.log
 tmp*/
+
+# 自建节点的密钥文件，绝对不要提交
 selfhost-node.json
 selfhost/selfhost-node.json
 selfhost/test-output.yaml

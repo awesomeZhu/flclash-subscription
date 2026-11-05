@@ -38,6 +38,18 @@ jobs:
           python -m pip install -r requirements.txt
           python -c "import sys, yaml; print(sys.version); print('PyYAML', yaml.__version__)"
 
+      # 自建节点参数放在仓库 Secret 里，不落公开仓库（.gitignore 也排除了这个文件）
+      - name: 注入自建节点参数（可选）
+        env:
+          SELFHOST_NODE: ${{ secrets.SELFHOST_NODE }}
+        run: |
+          if [ -n "$SELFHOST_NODE" ]; then
+            printf '%s' "$SELFHOST_NODE" > selfhost/selfhost-node.json
+            python -c "import json;d=json.load(open('selfhost/selfhost-node.json'));print('自建节点已注入，服务器:', d.get('server'))"
+          else
+            echo "未配置 SELFHOST_NODE，本次只生成免费节点"
+          fi
+
       - name: 抓取 + 测速 + 生成配置
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -45,7 +57,27 @@ jobs:
           PYTHONIOENCODING: utf-8
         run: |
           set -o pipefail
-          python -u scripts/pipeline.py --workers 128 --rounds 2 --timeout 3000 2>&1 | tee pipeline.log
+          if [ -f selfhost/selfhost-node.json ]; then
+            # 合并版（自建+免费）写到 .cache（不提交），公开版写到 out/
+            OUT_ARGS="--out .cache/full.yaml --public-out out/flclash-free-nodes.yaml"
+            OUT_ARGS="$OUT_ARGS --selfhost selfhost/selfhost-node.json"
+          else
+            OUT_ARGS="--out out/flclash-free-nodes.yaml"
+          fi
+          python -u scripts/pipeline.py --workers 128 --rounds 2 --timeout 3000 $OUT_ARGS 2>&1 | tee pipeline.log
+
+      # 合并版含密钥，只推到私有 Gist；公开仓库里永远只有免费节点
+      - name: 发布合并订阅到私有 Gist（可选）
+        if: success()
+        env:
+          GIST_ID: ${{ secrets.GIST_ID }}
+          GIST_TOKEN: ${{ secrets.GIST_TOKEN }}
+        run: |
+          if [ -f .cache/full.yaml ]; then
+            python scripts/publish_gist.py .cache/full.yaml flclash-full.yaml
+          else
+            echo "没有合并版文件（未配置自建节点），跳过"
+          fi
 
       # 失败时把日志尾部写进注解：这样在 Actions 页面顶部“Annotations”里就能直接看到报错
       - name: 失败时输出错误摘要
@@ -66,11 +98,12 @@ jobs:
           path: |
             out/flclash-free-nodes.yaml
             out/nodes.txt
+            .cache/full.yaml
             pipeline.log
           retention-days: 7
           if-no-files-found: warn
 
-      - name: 提交并推送
+      - name: 提交并推送（只提交公开版）
         if: success()
         run: |
           git config user.name  "github-actions[bot]"

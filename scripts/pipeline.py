@@ -1,11 +1,20 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-一站式流水线：抓取 GitHub 免费节点 -> 清洗去重 -> Mihomo 内核校验 -> 真实测速 -> 归属地 -> 生成 FLClash 配置
+一站式流水线：抓取 GitHub 免费节点 -> 清洗去重 -> Mihomo 内核校验 -> 谷歌/YouTube 严格验证
+              -> 归属地 -> 生成 FLClash 配置
+
+下发的硬标准（全部满足才写进订阅）：
+    1. 经内核实测能打开 https://www.google.com/generate_204   （返回 204）
+    2. 经内核实测能打开 https://www.youtube.com/              （返回 200）
+    3. 谷歌延迟的中位数 ≤ --max-delay（默认 200ms）
+    4. 多轮探测全部命中（--min-hits，默认 = --verify-rounds）
 
 用法:
     python scripts/pipeline.py                     # 默认输出 out/flclash-free-nodes.yaml
-    python scripts/pipeline.py --out out/x.yaml --workers 128 --rounds 2
+    python scripts/pipeline.py --max-delay 300 --verify-rounds 3      # 放宽延迟 / 多测几轮
+    python scripts/pipeline.py --keep-slow --keep-gonly              # 超标/仅谷歌的也留存（单列分组）
+    python scripts/pipeline.py --max-candidates 30                   # 调试：只测前 30 个候选
 
 退出码: 0 成功 / 1 失败（无可用节点或内核不可用）
 """
@@ -448,7 +457,214 @@ def measure(exe, proxies, workdir, workers, rounds, timeout_ms, test_url):
     return result
 
 
-# ---------------------------------------------------------------- 4. 归属地
+# ---------------------------------------------------------------- 4. 严格验证
+# 唯一的下发标准：谷歌和 YouTube 都真能打开，且延迟不超过门槛。
+GOOGLE_URL = "https://www.google.com/generate_204"
+YOUTUBE_URL = "https://www.youtube.com/"
+
+
+def _median(vals):
+    v = sorted(vals)
+    return v[len(v) // 2] if v else None
+
+
+def _verify_ports(n):
+    """给每个节点分配一个本地入站端口（mihomo 的 listeners 支持给单个节点单独开口）。
+    从 20000 起挑，避开系统临时端口段（Linux 32768+、Windows 49152+），减少抢端口。"""
+    ports, tried, base = [], 0, 20000
+    while len(ports) < n and tried < n * 30 + 500:
+        p = base + tried
+        tried += 1
+        if p > 32000:
+            break
+        s = socket.socket()
+        try:
+            s.bind(("127.0.0.1", p))
+            s.listen(1)
+            ports.append(p)
+        except OSError:
+            pass
+        finally:
+            s.close()
+    return ports
+
+
+def http_probe(port, site, timeout_ms):
+    """通过 127.0.0.1:<port> 这个入站口发一次真实 HTTP 请求。
+
+    为什么不用内核的 /delay 接口：实测它对状态码完全不看（404 也返回“成功 48ms”），
+    所以那种测法证明不了“网页真能打开”。这里走真实请求 + 真实状态码 + 真实内容：
+      google  —— 必须 204（generate_204 的标准返回）
+      youtube —— 必须 200，且响应体里真含 youtube / ytimg 字样（挡掉劫持页、错误页）
+    返回 (ok, status, 毫秒, 错误说明)
+    """
+    url = GOOGLE_URL if site == "google" else YOUTUBE_URL
+    proxy = "http://127.0.0.1:%d" % port
+    op = urllib.request.build_opener(
+        urllib.request.ProxyHandler({"http": proxy, "https": proxy}))
+    t0 = time.time()
+    try:
+        with op.open(url, timeout=max(1.0, timeout_ms / 1000.0)) as resp:
+            code = resp.status
+            ms = int((time.time() - t0) * 1000)
+            if site == "google":
+                return code == 204, code, ms, ("" if code == 204 else "状态码 %d" % code)
+            body = resp.read(65536)
+            if "gzip" in (resp.headers.get("Content-Encoding") or "").lower():
+                try:                                  # 万一对方还是压了，先解开再找关键字
+                    body = gzip.GzipFile(fileobj=io.BytesIO(body)).read(65536)
+                except Exception:  # noqa: BLE001
+                    pass
+            body = body.lower()
+            if code != 200:
+                return False, code, ms, "状态码 %d" % code
+            if len(body) < 2000 or (b"youtube" not in body and b"ytimg" not in body):
+                return False, code, ms, "返回内容不是 YouTube（%d 字节）" % len(body)
+            return True, code, ms, ""
+    except urllib.error.HTTPError as e:
+        return False, e.code, int((time.time() - t0) * 1000), "HTTP %d" % e.code
+    except Exception as e:  # noqa: BLE001
+        return False, None, int((time.time() - t0) * 1000), str(e)[:80]
+
+
+def probe_one_node(port, rounds, timeout_ms):
+    """一个节点测两个站（顺序执行，避免自己抢自己的带宽把延迟测虚高）"""
+    g, y, g_err, y_err = [], [], "", ""
+    for _ in range(max(1, rounds)):
+        ok, code, ms, err = http_probe(port, "google", timeout_ms)
+        if ok:
+            g.append(ms)
+        else:
+            g_err = err
+    for _ in range(max(1, rounds)):
+        ok, code, ms, err = http_probe(port, "youtube", timeout_ms)
+        if ok:
+            y.append(ms)
+        else:
+            y_err = err
+    return _median(g), len(g), g_err, _median(y), len(y), y_err
+
+
+def write_verify_config(path, proxies, ctl, ports, mixed, reject_port):
+    """生成验证用配置：每个节点一个 listener（proxy 字段绑定到该节点），
+    另开一个绑 REJECT 的 listener 做自检（它必须连不上，否则说明 proxy 字段没生效）"""
+    lines = ["mixed-port: %d" % mixed, "allow-lan: false", "mode: rule", "log-level: warning",
+             "ipv6: false", "external-controller: 127.0.0.1:%d" % ctl, "secret: \"\"",
+             "dns:", "  enable: false", "listeners:",
+             "  - name: selfcheck-reject", "    type: mixed", "    port: %d" % reject_port,
+             "    proxy: REJECT"]
+    for p, port in zip(proxies, ports):
+        lines += ["  - name: ln-%s" % p["__id"], "    type: mixed", "    port: %d" % port,
+                  "    proxy: %s" % yaml_scalar(p["__id"])]
+    lines.append("proxies:")
+    for p in proxies:
+        q = {k: v for k, v in p.items() if not str(k).startswith("__")}
+        q["name"] = p["__id"]
+        lines.append("-")
+        yaml_emit(lines, q, 1)
+    lines += ["rules:", "  - MATCH,DIRECT"]
+    with open(path, "w", encoding="utf-8", newline="\n") as f:
+        f.write("\n".join(lines) + "\n")
+
+
+def _verify_chunk(exe, chunk, workdir, workers, rounds, timeout_ms):
+    """一批节点（≤150）的严格验证：开端口 -> 起内核 -> 自检 -> 并发真请求 -> 收尾。
+    返回 ({__id: (g_med, g_hits, g_err, y_med, y_hits, y_err)}, 致命错误说明)"""
+    want = len(chunk) + 1                 # 多要一个给“自检 REJECT”口，避免和节点端口撞号
+    ports = _verify_ports(want)
+    reject_port = ports.pop() if ports else free_port()
+    if len(ports) < len(chunk):
+        log("  [warn] 本批只分配到 %d/%d 个本地端口，少的那几个这次不验证" % (len(ports), len(chunk)))
+        chunk = chunk[:len(ports)]
+    if not chunk:
+        return {}, ""
+    mixed, ctl = port_pair()
+    cfg = os.path.join(workdir, "verify_config.yaml")
+    write_verify_config(cfg, chunk, ctl, ports, mixed, reject_port)
+    proc = start_core(exe, cfg, workdir, ctl, os.path.join(workdir, "core-verify.log"))
+    rows = {}
+    try:
+        # 自检：绑 REJECT 的口必须连不上。连得上 => 内核对 listener 的 proxy 字段不生效，
+        # 那样所有请求都会走“规则默认出口”，验证结果毫无意义，必须停下来。
+        ok, code, ms, err = http_probe(reject_port, "google", min(timeout_ms, 5000))
+        if ok:
+            return {}, ("内核对 listeners.proxy 支持异常（REJECT 口竟然连通了 %d，%dms），"
+                        "逐节点验证无法进行" % (code, ms))
+        t0 = time.time()
+        done = 0
+        with ThreadPoolExecutor(max_workers=max(1, workers)) as ex:
+            futs = {ex.submit(probe_one_node, port, rounds, timeout_ms): p["__id"]
+                    for p, port in zip(chunk, ports)}
+            for f in as_completed(futs):
+                rows[futs[f]] = f.result()
+                done += 1
+                if done % 50 == 0:
+                    log("    %d/%d 已测  通过 %d  %.0fs"
+                        % (done, len(chunk), sum(1 for v in rows.values() if v[0] and v[3]),
+                           time.time() - t0))
+        log("  本批 %d 个节点实测完成 %.0fs（通过 %d）"
+            % (len(chunk), time.time() - t0, sum(1 for v in rows.values() if v[0] and v[3])))
+    finally:
+        proc.terminate()
+        try:
+            proc.wait(timeout=10)
+        except Exception:  # noqa: BLE001
+            proc.kill()
+    return rows, ""
+
+
+def verify_sites(exe, proxies, workdir, workers, rounds, timeout_ms, max_delay, min_hits):
+    """严格验证：谷歌 204 + YouTube 200 都得真拿到，且延迟 ≤ max_delay。
+
+    做法：给每个节点开一个独立入站端口（mihomo listeners 的 proxy 字段），
+    然后从本机真实发出 HTTP/HTTPS 请求 —— 状态码、响应内容、TLS 全是真的，
+    和你在浏览器里打开是一回事，不是“看着像通”。
+
+    返回 ({__id: {...}}, 统计)，并给节点打 __tier：
+      full  = 谷歌 + YouTube 都通，延迟达标  -> 下发
+      slow  = 两个都通但延迟超标            -> 默认丢弃，--keep-slow 才保留
+      gonly = 只有谷歌通，YouTube 不通       -> 默认丢弃，--keep-gonly 才保留
+    """
+    for i, p in enumerate(proxies):
+        if not p.get("__id"):
+            p["__id"] = "v%04d" % i
+
+    rows = {}
+    total = len(proxies)
+    chunk_size = 150                      # 一次别开太多端口，分批跑更稳
+    if total > chunk_size:
+        log("  分 %d 批跑，每批 ≤%d 个节点（少开端口、少占内存）"
+            % ((total + chunk_size - 1) // chunk_size, chunk_size))
+    for i in range(0, total, chunk_size):
+        part, fatal = _verify_chunk(exe, proxies[i:i + chunk_size], workdir, workers,
+                                    rounds, timeout_ms)
+        if fatal:
+            return {}, {"fatal": fatal}
+        rows.update(part)
+
+    result = {}
+    stat = {"full": 0, "slow": 0, "gonly": 0, "dead": 0, "youtube_only": 0}
+    for nid, (g, gh, ge, y, yh, ye) in rows.items():
+        ok_g = g is not None and gh >= min_hits
+        ok_y = y is not None and yh >= min_hits
+        if ok_g and ok_y:
+            tier = "full" if g <= max_delay else "slow"
+            result[nid] = {"delay": g, "hits": gh, "google": g, "youtube": y, "tier": tier}
+        elif ok_g:
+            tier = "gonly"
+            result[nid] = {"delay": g, "hits": gh, "google": g, "youtube": None, "tier": tier}
+        elif ok_y:
+            # 谷歌不通、YouTube 通：说明节点里塞了分流/劫持，不可信，直接丢
+            stat["youtube_only"] += 1
+            continue
+        else:
+            stat["dead"] += 1
+            continue
+        stat[tier] += 1
+    return result, stat
+
+
+# ---------------------------------------------------------------- 5. 归属地
 def geolocate(servers):
     ips = {}
     for srv in set(servers):
@@ -488,6 +704,10 @@ EU = {"NL", "DE", "GB", "FR", "IT", "RU", "CH", "SE", "CZ", "LV", "AT", "IE", "F
       "PL", "ES", "PT", "RO", "BG", "HU", "SK", "UA", "LT", "EE", "BE", "LU", "MD", "RS", "HR",
       "GR", "TR", "CY", "MT", "IS", "AL"}
 
+# 下发优先级与名字后缀：只有 full 会进主池，其余只是可选收纳
+TIER_RANK = {"full": 0, "slow": 1, "gonly": 2}
+TIER_TAG = {"full": "", "slow": " ·高延迟", "gonly": " ·仅谷歌"}
+
 
 def region_of(cc):
     for code, label in REGION_ORDER:
@@ -500,23 +720,57 @@ def flag(cc):
     return "".join(chr(0x1F1E6 + ord(c) - 65) for c in cc) if cc in ISO2 else "🌐"
 
 
-def build(nodes, geo, out_path, workers_note):
+def load_selfhost(path):
+    """读取 install.sh 生成的自建节点参数，返回 Clash 代理列表（含密钥，别公开）"""
+    if not path:
+        return []
+    if not os.path.isfile(path):
+        log("  [warn] 找不到自建节点参数 %s，本次只生成免费节点" % path)
+        return []
+    try:
+        info = json.load(open(path, encoding="utf-8"))
+        srv = info["server"]
+        sni = info.get("sni") or "www.microsoft.com"
+        out = []
+        r = info.get("reality")
+        if r:
+            out.append({
+                "name": "🏠 自建 · Reality", "type": "vless", "server": srv, "port": int(r["port"]),
+                "uuid": r["uuid"], "network": "tcp", "tls": True, "udp": True,
+                "flow": "xtls-rprx-vision", "servername": sni, "client-fingerprint": "chrome",
+                "reality-opts": {"public-key": r["public_key"], "short-id": r.get("short_id", "")},
+            })
+        h = info.get("hysteria2")
+        if h:
+            out.append({
+                "name": "🏠 自建 · Hysteria2", "type": "hysteria2", "server": srv,
+                "port": int(h["port"]), "password": h["password"], "sni": sni,
+                "skip-cert-verify": True, "up": "50 Mbps", "down": "200 Mbps", "udp": True,
+            })
+        return out
+    except Exception as e:  # noqa: BLE001
+        log("  [warn] 自建节点参数解析失败（忽略）: %s" % str(e)[:100])
+        return []
+
+
+def build(nodes, geo, out_path, workers_note, selfhost=None, public_path=None):
+    selfhost = selfhost or []
     items = []
     for p in nodes:
         nid = p["__id"]
         d = nodes_delay[nid]
         g = geo.get(str(p.get("server")), {})
         items.append({"node": p, "cc": g.get("cc", ""), "delay": d["delay"], "hits": d["hits"],
-                      "tier": p.get("__tier", "https")})
-    # HTTPS 验证过的排前面，仅 HTTP 的垫后
-    items.sort(key=lambda x: (0 if x["tier"] == "https" else 1, x["delay"], -x["hits"]))
+                      "tier": p.get("__tier", "full")})
+    # 完整通过的排前面，其余按下发顺序垫后
+    items.sort(key=lambda x: (TIER_RANK.get(x["tier"], 3), x["delay"], -x["hits"]))
 
     counters, proxies = {}, []
     for it in items:
         cc = it["cc"] if it["cc"] in ISO2 else "XX"
         counters[cc] = counters.get(cc, 0) + 1
         code = cc if cc != "XX" else "未知"
-        tag = "" if it["tier"] == "https" else " ·仅HTTP"
+        tag = TIER_TAG.get(it["tier"], "")
         name = "%s %s-%02d · %dms%s" % (flag(cc), code, counters[cc], it["delay"], tag)
         p = dict(it["node"])
         p.pop("__id", None)
@@ -527,102 +781,130 @@ def build(nodes, geo, out_path, workers_note):
         it["region"] = region_of(cc)
         proxies.append(p)
 
-    stamp = time.strftime("%Y-%m-%d %H:%M", time.localtime())
-    lines = [
-        "# FLClash / Mihomo 订阅 — 免费公共节点（自动构建）",
-        "# 生成时间: %s (UTC%s)   可用节点: %d" % (stamp, time.strftime("%z"), len(proxies)),
-        "# 数据来源: GitHub 上每日更新的公开免费节点库，合并去重后经 Mihomo 内核真实连通性测试",
-        "# 本文件由 GitHub Actions 自动生成，请勿手工修改",
-        "",
-    ]
-    cfg = {
-        "mixed-port": 7890, "allow-lan": False, "mode": "rule", "log-level": "info",
-        "ipv6": False, "unified-delay": True, "tcp-concurrent": True, "find-process-mode": "off",
-        "profile": {"store-selected": True, "store-fake-ip": True},
-        "sniffer": {"enable": True, "sniff": {"HTTP": {"ports": [80, "8080-8880"]},
-                                              "TLS": {"ports": [443, 8443]},
-                                              "QUIC": {"ports": [443, 8443]}}},
-        "dns": {"enable": True, "listen": "0.0.0.0:1053", "ipv6": False,
-                "enhanced-mode": "fake-ip", "fake-ip-range": "198.18.0.1/16",
-                "fake-ip-filter": ["*.lan", "*.local", "*.localdomain", "*.home.arpa",
-                                   "localhost.ptlogin2.qq.com", "+.msftconnecttest.com", "+.msftncsi.com"],
-                "default-nameserver": ["223.5.5.5", "119.29.29.29"],
-                "nameserver": ["https://223.5.5.5/dns-query", "https://1.12.12.12/dns-query"],
-                "proxy-server-nameserver": ["https://223.5.5.5/dns-query", "https://119.29.29.29/dns-query"],
-                "nameserver-policy": {"geosite:cn": ["https://223.5.5.5/dns-query",
-                                                     "https://1.12.12.12/dns-query"]}},
-    }
-    yaml_emit(lines, cfg, 0)
-
-    lines.append("proxies:")
-    for p in proxies:
-        lines.append("-")
-        yaml_emit(lines, p, 1)
-
-    https_items = [it for it in items if it["tier"] == "https"]
-    http_items = [it for it in items if it["tier"] != "https"]
-    https_names = [it["name"] for it in https_items]
-    http_names = [it["name"] for it in http_items]
-    all_names = https_names + http_names
+    primary_items = [it for it in items if it["tier"] == "full"]
+    primary_names = [it["name"] for it in primary_items]
+    all_names = [it["name"] for it in items]
+    # 没通过完整验证的（延迟超标 / YouTube 不通）只在带 --keep-* 时才会存在，单独分组收纳
+    extra = [(tier, label, [it["name"] for it in items if it["tier"] == tier])
+             for tier, label in (("slow", "🐢 高延迟备用"), ("gonly", "⚠️ 仅谷歌可用"))]
+    extra = [x for x in extra if x[2]]
 
     regions = {}
-    for it in https_items:
+    for it in primary_items:
         regions.setdefault(it["region"], []).append(it["name"])
     order = [lbl for _, lbl in REGION_ORDER if lbl in regions]
     order += [lbl for lbl in ("🇪🇺 欧洲", "🌍 其他") if lbl in regions]
 
-    main_pool = https_names or http_names          # 正常情况下自动选择只用 HTTPS 验证过的
-    check_url = ("https://www.gstatic.com/generate_204" if https_names
-                 else "http://www.gstatic.com/generate_204")
-    groups = [
-        {"name": "🚀 节点选择", "type": "select",
-         "proxies": (["♻️ 自动选择", "🔯 故障转移"] + order + ["🎯 全球直连"]
-                     + (["🌐 备用（仅 HTTP）"] if http_names else [])
-                     + all_names)},
-        {"name": "♻️ 自动选择", "type": "url-test", "url": check_url,
-         "interval": 300, "tolerance": 50, "lazy": False, "proxies": main_pool},
-        {"name": "🔯 故障转移", "type": "fallback", "url": check_url,
-         "interval": 300, "proxies": main_pool[:20]},
-    ]
-    for lbl in order:
-        groups.append({"name": lbl, "type": "url-test", "url": check_url,
-                       "interval": 300, "tolerance": 50, "proxies": regions[lbl]})
-    groups.append({"name": "🎯 全球直连", "type": "select", "proxies": ["DIRECT"]})
-    groups.append({"name": "🛑 广告拦截", "type": "select", "proxies": ["REJECT", "DIRECT"]})
-    if http_names:
-        groups.append({"name": "🌐 备用（仅 HTTP）", "type": "select", "proxies": http_names})
+    main_pool = primary_names or all_names     # 自动选择/故障转移只用完整验证通过的
+    check_url = "https://www.gstatic.com/generate_204"
 
-    lines.append("proxy-groups:")
-    for g in groups:
-        lines.append("-")
-        yaml_emit(lines, g, 1)
+    def render(path, sh):
+        sh_names = [p["name"] for p in sh]
+        stamp = time.strftime("%Y-%m-%d %H:%M", time.localtime())
+        lines = [
+            "# FLClash / Mihomo 订阅 — %s" % ("自建 + 免费节点" if sh else "免费公共节点"),
+            "# 生成时间: %s (UTC%s)   节点: %d%s" % (
+                stamp, time.strftime("%z"), len(proxies) + len(sh),
+                "（自建 %d + 免费 %d）" % (len(sh), len(proxies)) if sh else ""),
+            "# 数据来源: GitHub 上每日更新的公开免费节点库，合并去重后逐个实测：",
+            "#   谷歌 (www.google.com/generate_204) 与 YouTube (www.youtube.com) 都能真打开，",
+            "#   且延迟 ≤ %dms —— 打不开的直接不下发，导入后不用再自己一个个试。" % DELAY_GATE,
+            "# 本文件由 GitHub Actions 自动生成，请勿手工修改",
+        ]
+        if sh:
+            lines.append("# ⚠️ 本文件含自建节点密钥，请勿公开（仅用于私有 Gist）")
+        lines.append("")
 
-    rules = ["IP-CIDR,127.0.0.0/8,DIRECT,no-resolve", "IP-CIDR,10.0.0.0/8,DIRECT,no-resolve",
-             "IP-CIDR,172.16.0.0/12,DIRECT,no-resolve", "IP-CIDR,192.168.0.0/16,DIRECT,no-resolve",
-             "IP-CIDR,100.64.0.0/10,DIRECT,no-resolve", "IP-CIDR,169.254.0.0/16,DIRECT,no-resolve",
-             "IP-CIDR6,fc00::/7,DIRECT,no-resolve", "IP-CIDR6,fe80::/10,DIRECT,no-resolve",
-             "DOMAIN-SUFFIX,local,DIRECT", "DOMAIN-SUFFIX,lan,DIRECT", "DOMAIN-SUFFIX,home.arpa,DIRECT",
-             "GEOSITE,private,DIRECT", "GEOSITE,cn,DIRECT", "GEOIP,CN,DIRECT", "MATCH,🚀 节点选择"]
-    lines.append("rules:")
-    for r in rules:
-        lines.append("- %s" % yaml_scalar(r))
+        cfg = {
+            "mixed-port": 7890, "allow-lan": False, "mode": "rule", "log-level": "info",
+            "ipv6": False, "unified-delay": True, "tcp-concurrent": True, "find-process-mode": "off",
+            "profile": {"store-selected": True, "store-fake-ip": True},
+            "sniffer": {"enable": True, "sniff": {"HTTP": {"ports": [80, "8080-8880"]},
+                                                  "TLS": {"ports": [443, 8443]},
+                                                  "QUIC": {"ports": [443, 8443]}}},
+            "dns": {"enable": True, "listen": "0.0.0.0:1053", "ipv6": False,
+                    "enhanced-mode": "fake-ip", "fake-ip-range": "198.18.0.1/16",
+                    "fake-ip-filter": ["*.lan", "*.local", "*.localdomain", "*.home.arpa",
+                                       "localhost.ptlogin2.qq.com", "+.msftconnecttest.com",
+                                       "+.msftncsi.com"],
+                    "default-nameserver": ["223.5.5.5", "119.29.29.29"],
+                    "nameserver": ["https://223.5.5.5/dns-query", "https://1.12.12.12/dns-query"],
+                    "proxy-server-nameserver": ["https://223.5.5.5/dns-query",
+                                                "https://119.29.29.29/dns-query"],
+                    "nameserver-policy": {"geosite:cn": ["https://223.5.5.5/dns-query",
+                                                         "https://1.12.12.12/dns-query"]}},
+        }
+        yaml_emit(lines, cfg, 0)
 
-    os.makedirs(os.path.dirname(os.path.abspath(out_path)), exist_ok=True)
-    with open(out_path, "w", encoding="utf-8", newline="\n") as f:
-        f.write("\n".join(lines) + "\n")
+        lines.append("proxies:")
+        for p in sh + proxies:          # 自建节点排最前
+            lines.append("-")
+            yaml_emit(lines, p, 1)
 
-    # 纯文本清单
-    txt_path = os.path.join(os.path.dirname(os.path.abspath(out_path)), "nodes.txt")
-    rows = ["# 免费节点清单  " + stamp, "# 序号 | 地区 | 协议 | 服务器:端口 | 延迟(ms)", ""]
-    for i, (p, it) in enumerate(zip(proxies, items), 1):
-        rows.append("%3d | %-2s | %-9s | %s:%s | %d" % (i, it["cc"] or "??", p["type"],
-                                                        p["server"], p["port"], it["delay"]))
-    with open(txt_path, "w", encoding="utf-8", newline="\n") as f:
-        f.write("\n".join(rows) + "\n")
+        groups = []
+        if sh:
+            groups.append({"name": "🏠 自建节点", "type": "url-test", "url": check_url,
+                           "interval": 120, "tolerance": 50, "lazy": False, "proxies": sh_names})
+            # 自建优先，自建全挂时自动落到免费节点
+            groups.append({"name": "🔀 智能切换", "type": "fallback", "url": check_url,
+                           "interval": 300, "proxies": ["🏠 自建节点", "♻️ 自动选择"]})
+        select_list = (["🔀 智能切换"] if sh else []) + (["🏠 自建节点"] if sh else []) \
+            + ["♻️ 自动选择", "🔯 故障转移"] + order + ["🎯 全球直连"] \
+            + [lbl for _, lbl, _ in extra] \
+            + sh_names + all_names
+        groups.insert(0, {"name": "🚀 节点选择", "type": "select", "proxies": select_list})
+        groups.append({"name": "♻️ 自动选择", "type": "url-test", "url": check_url,
+                       "interval": 300, "tolerance": 50, "lazy": False, "proxies": main_pool})
+        groups.append({"name": "🔯 故障转移", "type": "fallback", "url": check_url,
+                       "interval": 300, "proxies": main_pool[:20]})
+        for lbl in order:
+            groups.append({"name": lbl, "type": "url-test", "url": check_url,
+                           "interval": 300, "tolerance": 50, "proxies": regions[lbl]})
+        groups.append({"name": "🎯 全球直连", "type": "select", "proxies": ["DIRECT"]})
+        groups.append({"name": "🛑 广告拦截", "type": "select", "proxies": ["REJECT", "DIRECT"]})
+        for _, lbl, names in extra:
+            groups.append({"name": lbl, "type": "select", "proxies": names})
+
+        lines.append("proxy-groups:")
+        for g in groups:
+            lines.append("-")
+            yaml_emit(lines, g, 1)
+
+        rules = ["IP-CIDR,127.0.0.0/8,DIRECT,no-resolve", "IP-CIDR,10.0.0.0/8,DIRECT,no-resolve",
+                 "IP-CIDR,172.16.0.0/12,DIRECT,no-resolve", "IP-CIDR,192.168.0.0/16,DIRECT,no-resolve",
+                 "IP-CIDR,100.64.0.0/10,DIRECT,no-resolve", "IP-CIDR,169.254.0.0/16,DIRECT,no-resolve",
+                 "IP-CIDR6,fc00::/7,DIRECT,no-resolve", "IP-CIDR6,fe80::/10,DIRECT,no-resolve",
+                 "DOMAIN-SUFFIX,local,DIRECT", "DOMAIN-SUFFIX,lan,DIRECT", "DOMAIN-SUFFIX,home.arpa,DIRECT",
+                 "GEOSITE,private,DIRECT", "GEOSITE,cn,DIRECT", "GEOIP,CN,DIRECT", "MATCH,🚀 节点选择"]
+        lines.append("rules:")
+        for r in rules:
+            lines.append("- %s" % yaml_scalar(r))
+
+        os.makedirs(os.path.dirname(os.path.abspath(path)), exist_ok=True)
+        with open(path, "w", encoding="utf-8", newline="\n") as f:
+            f.write("\n".join(lines) + "\n")
+        return path
+
+    def write_nodes_txt(path):
+        stamp = time.strftime("%Y-%m-%d %H:%M", time.localtime())
+        txt_path = os.path.join(os.path.dirname(os.path.abspath(path)), "nodes.txt")
+        rows = ["# 免费节点清单  " + stamp, "# 序号 | 地区 | 协议 | 服务器:端口 | 延迟(ms)", ""]
+        for i, (p, it) in enumerate(zip(proxies, items), 1):
+            rows.append("%3d | %-2s | %-9s | %s:%s | %d" % (i, it["cc"] or "??", p["type"],
+                                                            p["server"], p["port"], it["delay"]))
+        with open(txt_path, "w", encoding="utf-8", newline="\n") as f:
+            f.write("\n".join(rows) + "\n")
+
+    render(out_path, selfhost)
+    write_nodes_txt(public_path or out_path)   # 清单始终跟着公开版走
+    if public_path:
+        # 公开仓库那份：去掉自建节点，避免密钥泄露
+        render(public_path, [])
     return items, proxies
 
 
 nodes_delay = {}
+DELAY_GATE = 200      # 延迟门槛（ms），由 main() 按 --max-delay 覆盖，仅用于写进配置注释
 
 # mihomo 校验 GEOSITE/GEOIP 规则时需要地理库；默认会自己去 GitHub 下载，
 # 一旦下载失败整个配置校验就失败 —— 所以这里先带镜像把它预置好。
@@ -712,6 +994,26 @@ def main():
     ap.add_argument("--rounds", type=int, default=2)
     ap.add_argument("--timeout", type=int, default=3000)
     ap.add_argument("--min-nodes", type=int, default=5)
+    ap.add_argument("--max-delay", type=int, default=200,
+                    help="延迟门槛（毫秒）：谷歌 204 的中位延迟超过它就下发时丢弃，默认 200")
+    ap.add_argument("--verify-rounds", type=int, default=2,
+                    help="严格验证时每个站点的探测轮数，默认 2")
+    ap.add_argument("--verify-timeout", type=int, default=5000,
+                    help="严格验证单次请求超时（毫秒），默认 5000")
+    ap.add_argument("--min-hits", type=int, default=0,
+                    help="每个站点至少成功几轮才算通，默认=verify-rounds（要求全中，最稳）")
+    ap.add_argument("--keep-slow", action="store_true",
+                    help="保留延迟超标的节点（放进“🐢 高延迟备用”组），默认丢弃")
+    ap.add_argument("--no-fallback-slow", dest="fallback_slow", action="store_false",
+                    help="完整通过的节点不足时不要自动补高延迟节点（默认会自动补，避免下发空订阅）")
+    ap.add_argument("--keep-gonly", action="store_true",
+                    help="保留 YouTube 打不开、只有谷歌通的节点（放进“⚠️ 仅谷歌可用”组），默认丢弃")
+    ap.add_argument("--max-candidates", type=int, default=0,
+                    help="只取前 N 个候选参与测速（调试用），0 = 全部")
+    ap.add_argument("--selfhost", default="",
+                    help="自建节点参数 json（install.sh 生成），提供则并入订阅最前面")
+    ap.add_argument("--public-out", default="",
+                    help="另存一份不含自建节点的配置，供公开仓库提交")
     args = ap.parse_args()
 
     t_all = time.time()
@@ -721,8 +1023,8 @@ def main():
 
     log("运行环境: python %s | %s %s | 工作目录 %s" % (
         platform.python_version(), platform.system(), platform.machine(), ROOT))
-    log("参数: workers=%d rounds=%d timeout=%dms out=%s" % (
-        args.workers, args.rounds, args.timeout, args.out))
+    log("参数: workers=%d rounds=%d timeout=%dms max_delay=%dms 输出=%s" % (
+        args.workers, args.rounds, args.timeout, args.max_delay, args.out))
 
     log("[1/7] 抓取节点源")
     ok, failed = fetch_sources()
@@ -761,6 +1063,9 @@ def main():
         log("候选节点过少，退出")
         annotate("候选节点只有 %d 个，少于阈值 %d" % (len(merged), args.min_nodes))
         return 1
+    if args.max_candidates and len(merged) > args.max_candidates:
+        merged = merged[:args.max_candidates]
+        log("  [调试] 只取前 %d 个候选参与后续测速" % len(merged))
 
     log("[3/7] 内核校验")
     t_val = time.time()
@@ -788,22 +1093,79 @@ def main():
         return 1
     candidates = [p for p in merged if p["__id"] in quick]
 
-    log("[5/7] 复测：HTTPS 访问（%d 轮，只留真能上 HTTPS 的）" % args.rounds)
-    global nodes_delay
-    nodes_delay = measure(exe, candidates, work, min(args.workers, 32), args.rounds,
-                          max(args.timeout, 5000), https_url)
-    log("  复测存活: %d / %d" % (len(nodes_delay), len(candidates)))
-    if len(nodes_delay) < args.min_nodes:
-        log("  [warn] HTTPS 复测通过数不足，回退：全部候选都按“仅 HTTP”处理（不下发空配置）")
-        nodes_delay = {}
-    # 只过了 HTTP 的节点不丢，归到“备用（仅 HTTP）”组
+    log("[5/7] 严格验证：谷歌 + YouTube 可达性（%d 轮，延迟门槛 %dms）" %
+        (args.verify_rounds, args.max_delay))
+    min_hits = args.min_hits or args.verify_rounds
+    min_hits = max(1, min(min_hits, args.verify_rounds))
+    global nodes_delay, DELAY_GATE
+    DELAY_GATE = args.max_delay
+    verified, vstat = verify_sites(exe, candidates, work, min(args.workers, 64),
+                                   args.verify_rounds, args.verify_timeout,
+                                   args.max_delay, min_hits)
+    if vstat.get("fatal"):
+        log("  严格验证无法进行：%s" % vstat["fatal"])
+        annotate("严格验证无法进行：%s" % vstat["fatal"])
+        return 1
+    log("  谷歌+YouTube 都通，且延迟 ≤%dms: %d 个 ✔" % (args.max_delay, vstat["full"]))
+    log("  延迟超标（>%dms）: %d 个%s" % (args.max_delay, vstat["slow"],
+                                     "，已保留" if args.keep_slow else "，丢弃"))
+    log("  YouTube 不通（仅谷歌）: %d 个%s" % (vstat["gonly"],
+                                          "，已保留" if args.keep_gonly else "，丢弃"))
+    log("  两个站点都不通: %d 个，丢弃" % vstat["dead"])
+    if vstat["youtube_only"]:
+        log("  只有 YouTube 通、谷歌不通（可疑节点）: %d 个，丢弃" % vstat["youtube_only"])
+    if vstat["full"] == 0:
+        log("  没有一个节点同时通过谷歌 + YouTube，保留上一版订阅，不下发空配置")
+        annotate("严格验证后 0 个节点可同时访问谷歌和 YouTube（候选 %d 个）" % len(candidates))
+        return 1
+
+    nodes_delay = {}
     for p in candidates:
-        p["__tier"] = "https" if p["__id"] in nodes_delay else "http"
-    for k, v in quick.items():
-        nodes_delay.setdefault(k, v)
-    alive = candidates
-    extra = sum(1 for p in alive if p["__tier"] == "http")
-    log("  HTTPS 可用 %d 个，另有 %d 个仅 HTTP（放入备用组）" % (len(candidates) - extra, extra))
+        info = verified.get(p["__id"])
+        if not info:
+            continue
+        if info["tier"] == "slow" and not args.keep_slow:
+            continue
+        if info["tier"] == "gonly" and not args.keep_gonly:
+            continue
+        p["__tier"] = info["tier"]
+        nodes_delay[p["__id"]] = {"delay": info["delay"], "hits": info["hits"],
+                                  "tests": args.verify_rounds}
+    # 兜底：完整通过的太少时，自动补几个“能打开两个站、只是慢”的节点，
+    # 免得某天门槛过严直接下发空订阅（它们会单独进「🐢 高延迟备用」，不进主池）
+    if args.fallback_slow and len(nodes_delay) < args.min_nodes:
+        spare = [p for p in candidates
+                 if verified.get(p["__id"], {}).get("tier") == "slow"
+                 and p["__id"] not in nodes_delay]
+        spare.sort(key=lambda p: verified[p["__id"]]["delay"])
+        added = 0
+        for p in spare:
+            if len(nodes_delay) >= args.min_nodes:
+                break
+            info = verified[p["__id"]]
+            p["__tier"] = "slow"
+            nodes_delay[p["__id"]] = {"delay": info["delay"], "hits": info["hits"],
+                                      "tests": args.verify_rounds}
+            added += 1
+        if added:
+            log("  [兜底] 完整通过不足 %d 个，自动补入 %d 个高延迟节点，保证订阅不空"
+                % (args.min_nodes, added))
+
+    alive = [p for p in candidates if p["__id"] in nodes_delay]
+    ds = sorted(info["delay"] for info in verified.values() if info["delay"])
+    if ds:
+        log("  双站都通的节点延迟分布: <100ms %d | 100-200ms %d | 200-400ms %d | 400-800ms %d | >800ms %d"
+            % (sum(1 for d in ds if d < 100), sum(1 for d in ds if 100 <= d < 200),
+               sum(1 for d in ds if 200 <= d < 400), sum(1 for d in ds if 400 <= d < 800),
+               sum(1 for d in ds if d >= 800)))
+        log("  （当前门槛 %dms；看着太严/太松就调 --max-delay）" % args.max_delay)
+    log("  本次下发节点: %d 个（初筛 %d 个，筛掉 %d 个）" % (len(alive), len(candidates),
+                                                       len(candidates) - len(alive)))
+    if len(alive) < args.min_nodes:
+        log("  通过数 %d 个 < 阈值 %d，保留上一版订阅，不下发" % (len(alive), args.min_nodes))
+        annotate("严格验证后只剩 %d 个节点（门槛 %dms），少于阈值 %d；可放宽 --max-delay"
+                 % (len(alive), args.max_delay, args.min_nodes))
+        return 1
 
     log("[6/7] 查询归属地")
     t_geo = time.time()
@@ -812,13 +1174,21 @@ def main():
                                         time.time() - t_geo))
 
     log("[7/7] 生成配置并校验")
-    items, proxies = build(alive, geo, args.out, args.workers)
-    log("  输出: %s  (%d 个节点)" % (args.out, len(proxies)))
+    sh_nodes = load_selfhost(args.selfhost)
+    if sh_nodes:
+        log("  已载入自建节点 %d 个: %s" % (len(sh_nodes), ", ".join(p["name"] for p in sh_nodes)))
+    items, proxies = build(alive, geo, args.out, args.workers, sh_nodes,
+                           args.public_out or None)
+    log("  输出: %s  (免费 %d + 自建 %d)" % (args.out, len(proxies), len(sh_nodes)))
+    if args.public_out:
+        log("  公开版: %s  (只含免费节点)" % args.public_out)
     log("  最快: %s   最慢: %s" % (items[0]["name"], items[-1]["name"]))
     from collections import Counter
     log("  地区: %s" % dict(Counter(it["cc"] or "??" for it in items).most_common(10)))
 
     ok = validate_output(exe, args.out, os.path.join(work, "final"))
+    if ok and args.public_out:
+        ok = validate_output(exe, args.public_out, os.path.join(work, "final")) and ok
     log("总耗时 %.0fs" % (time.time() - t_all))
     if not ok:
         annotate("生成的配置没通过内核校验，已保留上一版，不覆盖")
