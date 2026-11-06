@@ -119,3 +119,14 @@ jobs:
           fi
           git commit -m "chore(nodes): $(date -u +'%Y-%m-%d %H:%M UTC') 自动更新"
           git push
+
+      # 用 jsDelivr 加速地址的话，它会把 @master 的旧内容缓存 12 小时（实测出现过滞后 26 小时），
+      # 这里主动清一次 CDN 缓存；raw.githubusercontent.com 本身只有 5 分钟缓存，不需要处理。
+      - name: 清理 jsDelivr 缓存（可选，失败不影响构建）
+        if: success()
+        continue-on-error: true
+        run: |
+          URL="https://purge.jsdelivr.net/gh/${GITHUB_REPOSITORY}@master/out/flclash-free-nodes.yaml"
+          echo "purge: $URL"
+          curl -sS --max-time 40 "$URL" | head -c 300
+          echo
