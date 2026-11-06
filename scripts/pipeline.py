@@ -969,7 +969,8 @@ def build(nodes, geo, out_path, workers_note, selfhost=None, public_path=None):
             ("#   ② 机房实测延迟 ≤ %dms（未启用上海探针）" % DELAY_GATE),
             "# 本文件由 GitHub Actions 自动生成，请勿手工修改",
         ]
-        if DELAY_GATE_ASIA:
+        if DELAY_GATE_ASIA and not DELAY_GATE_CN:
+            # 只有在“没启用上海探针”时，亚太放宽才是真正的判定依据，才值得写进头部
             lines.insert(len(lines) - 1, "#   港澳台日韩新单独放宽到 ≤ %dms（机房到节点的延迟，你在国内用会更快）"
                          % DELAY_GATE_ASIA)
         if sh:
