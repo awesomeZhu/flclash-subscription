@@ -690,15 +690,37 @@ def _gp_call(url, payload=None, timeout=45):
         return json.loads(r.read().decode()), dict(r.headers)
 
 
-def _gp_ms(res):
-    """从 globalping 结果里取“到目标的 RTT”：mtr 有结构化 hops，ping 只有原始文本"""
+def _resolve_ips(host):
+    """目标可能是域名（甚至 CDN），把所有 A 记录都拿回来，后面判断“这一跳是不是目标本身”"""
+    host = str(host)
+    if re.match(r"^\d{1,3}(\.\d{1,3}){3}$", host):
+        return {host}
+    try:
+        infos = socket.getaddrinfo(host, None, socket.AF_INET)
+        return {i[4][0] for i in infos}
+    except Exception:  # noqa: BLE001
+        return set()
+
+
+def _gp_ms(res, target_ips=None):
+    """取“到目标本身”的 RTT。
+
+    坑：节点端口连不上时，mtr 依然会返回一串中途路由器（实测能看到上海→法兰克福→伦敦
+    →波士顿 的 cogent 路径，最后 100% loss），如果取“最后一个有数据的跳”，就会把某个
+    中途路由器的 2000ms 当成节点延迟。所以这里**只认地址属于目标的那个跳**。"""
+    target_ips = target_ips or set()
     for r in res.get("results", []):
         robj = r.get("result") or {}
-        hops = [h for h in (robj.get("hops") or [])
-                if (h.get("stats") or {}).get("avg") is not None]
+        hops = robj.get("hops") or []
+        for h in hops:
+            addr = str(h.get("resolvedAddress") or "")
+            if addr and addr in target_ips:
+                st = h.get("stats") or {}
+                if st.get("avg") is not None and float(st.get("loss") or 0) < 100:
+                    return float(st["avg"])
         if hops:
-            return float(hops[-1]["stats"]["avg"])
-        raw = robj.get("rawOutput")
+            continue          # 有 hops 但里面没有目标 = 没连上，别用中间路由器的数字
+        raw = robj.get("rawOutput")     # ping 类型的返回是原始文本
         if raw:
             vals = [float(x) for x in re.findall(r"time[=<]\s*([\d.]+)", str(raw))]
             if vals:
@@ -708,12 +730,15 @@ def _gp_ms(res):
 
 
 def cn_probe(target, port, city, timeout_s=90):
-    """从 city 探针量一次 target 的 RTT。先 mtr-TCP（能穿透只放 TCP 的机器），
-    没拿到数据再用 ping（照顾 hysteria2 这类只开 UDP 的节点）。返回 (ms, 说明)。"""
-    plan = [("mtr", {"type": "mtr", "target": target, "locations": [city],
-                     "measurementOptions": {"protocol": "TCP", "port": int(port)}, "limit": 1}),
-            ("ping", {"type": "ping", "target": target, "locations": [city],
-                      "measurementOptions": {"packets": 3}, "limit": 1})]
+    """从 city 探针量一次 target 的 RTT。
+
+    先 ping（1 次额度、ICMP 回包就是网络 RTT）；ping 不通（很多 VPS 屏蔽 ICMP）再用
+    mtr-TCP 打节点端口。这样正常情况下每个节点只花 1 次额度。返回 (ms, 说明)。"""
+    target_ips = _resolve_ips(target)
+    plan = [("ping", {"type": "ping", "target": target, "locations": [city],
+                      "measurementOptions": {"packets": 3}, "limit": 1}),
+            ("mtr", {"type": "mtr", "target": target, "locations": [city],
+                     "measurementOptions": {"protocol": "TCP", "port": int(port)}, "limit": 1})]
     for kind, payload in plan:
         if _gp_budget["remaining"] <= 1:
             return None, "额度用尽"
@@ -741,11 +766,11 @@ def cn_probe(target, port, city, timeout_s=90):
             except Exception:  # noqa: BLE001
                 continue
             if res.get("status") == "finished":
-                ms = _gp_ms(res)
+                ms = _gp_ms(res, target_ips)
                 if ms:
                     return int(round(ms)), kind
                 break
-    return None, "探针无响应"
+    return None, "连不上/无回包"
 
 
 def _round_robin_by_cc(nodes, geo):
@@ -1143,10 +1168,10 @@ def main():
                     help="国内探针城市，默认 Shanghai（globalping 的国内探针城市）")
     ap.add_argument("--cn-max-delay", type=int, default=200,
                     help="上海 -> 节点 的 RTT 门槛（毫秒），超过就下发时丢弃，默认 200")
-    ap.add_argument("--cn-max-nodes", type=int, default=200,
-                    help="本次最多量多少个节点（globalping 免费额度 250 次/小时），默认 200")
-    ap.add_argument("--cn-workers", type=int, default=6,
-                    help="并发创建的探针测量数量，默认 6")
+    ap.add_argument("--cn-max-nodes", type=int, default=150,
+                    help="本次最多量多少个节点（globalping 免费额度 250 次/小时），默认 150")
+    ap.add_argument("--cn-workers", type=int, default=4,
+                    help="并发创建的探针测量数量，默认 4")
     ap.add_argument("--verify-rounds", type=int, default=2,
                     help="严格验证时每个站点的探测轮数，默认 2")
     ap.add_argument("--verify-timeout", type=int, default=5000,
@@ -1292,12 +1317,18 @@ def main():
         else:
             log("  [warn] 探针一个数据都没拿到（限流或网络问题），退回按机房延迟判断")
         promoted = demoted = 0
-        # GitHub 的 runner 出口 IP 是共享的，250 次/小时可能被别人吃掉，
-        # 所以覆盖不足时不敢用探针结果做“降级”，否则会误杀一堆好节点
-        enough = len(hit) >= max(5, int(len(candidates) * 0.5))
-        if not enough:
-            log("  [warn] 探针覆盖不足（有数据 %d / %d 个候选，可能出口被限流），"
-                "本次仍按机房延迟判断" % (len(hit), len(candidates)))
+        # 判断这轮探针结果能不能信：区分「探针本身出问题（限流/额度）」和
+        # 「探针正常工作、只是这些节点从上海连不上（这本身就是有效信号）」
+        from collections import Counter as _Counter
+        reasons = _Counter(v[1] for v in cn_data.values() if not v[0])
+        unreachable = reasons.get("连不上/无回包", 0)
+        infra = reasons.get("额度用尽", 0) + reasons.get("限流 429", 0)
+        measured = len(cn_data)
+        reliable = bool(measured) and (
+            unreachable >= max(3, measured * 0.5) or len(hit) >= max(3, len(candidates) * 0.3))
+        if not reliable:
+            log("  [warn] 探针结果不可用（测了 %d 个：有数据 %d、连不上 %d、限流/额度 %d），"
+                "本次退回按机房延迟判断" % (measured, len(hit), unreachable, infra))
         else:
             for p in candidates:
                 info = verified.get(p["__id"])
@@ -1306,8 +1337,7 @@ def main():
                 ms = cn_data.get((str(p.get("server")), int(p.get("port") or 443)), (None, ""))[0]
                 if not ms:
                     cn_miss += 1
-                    # 探针量到过东西，但这个节点没数据（端口被判死/超时/额度用尽）：
-                    # 上海能不能用没有证据，先降级，别拿没验过的节点占位
+                    # 上海连不上/没数据：不能证明你那边能用，降级（不占主池名额）
                     if info["tier"] == "full":
                         info["tier"] = "slow"
                     continue
@@ -1321,7 +1351,7 @@ def main():
                 elif info["tier"] == "full":
                     info["tier"] = "slow"          # 机房看着快、上海其实慢 -> 降级
                     demoted += 1
-            log("  按上海实测重判: 收回 %d 个（≤%dms），降级 %d 个（>%dms），无数据 %d 个"
+            log("  按上海实测重判: 收回 %d 个（≤%dms），降级 %d 个（>%dms 或连不上），无数据 %d 个"
                 % (promoted, args.cn_max_delay, demoted, args.cn_max_delay, cn_miss))
         DELAY_GATE_CN = args.cn_max_delay if cn_hit else 0
 
