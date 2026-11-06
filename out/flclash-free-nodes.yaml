@@ -1,9 +1,8 @@
 # FLClash / Mihomo 订阅 — 免费公共节点
-# 生成时间: 2026-11-06 05:42 (UTC+0000)   节点: 19
+# 生成时间: 2026-11-06 06:07 (UTC+0000)   节点: 10
 # 数据来源: GitHub 上每日更新的公开免费节点库，合并去重后逐个实测：
 #   ① 谷歌 (www.google.com/generate_204) 与 YouTube (www.youtube.com) 都能真打开；
 #   ② 上海探针（globalping.io）实测“上海 → 节点”RTT ≤ 200ms，节点名里的数字就是上海延迟。
-#   港澳台日韩新单独放宽到 ≤ 400ms（机房到节点的延迟，你在国内用会更快）
 # 本文件由 GitHub Actions 自动生成，请勿手工修改
 
 mixed-port: 7890
@@ -64,7 +63,7 @@ proxies:
   alterId: 1
   cipher: auto
   client-fingerprint: chrome
-  name: 🇯🇵 JP-01 · 53ms
+  name: 🇯🇵 JP-01 · 50ms
   network: tcp
   port: 444
   server: gwsumx2-g01.jp04-1d-vm0.entry.fr0528.art
@@ -77,21 +76,7 @@ proxies:
   alterId: 1
   cipher: auto
   client-fingerprint: chrome
-  name: 🇯🇵 JP-02 · 54ms
-  network: tcp
-  port: 21581
-  server: gls7yp6-g01.jp03-j7-vm0.entry.fr0528.art
-  servername: gls7yp6-g01.jp03-j7-vm0.entry.fr0528.art
-  skip-cert-verify: false
-  tls: true
-  type: vmess
-  udp: true
-  uuid: 1a9f857f-9a07-3a8c-a155-f9ab3c457343
--
-  alterId: 1
-  cipher: auto
-  client-fingerprint: chrome
-  name: 🇯🇵 JP-03 · 66ms
+  name: 🇯🇵 JP-02 · 92ms
   network: tcp
   port: 444
   server: 3ldu9p6-g01.jp04-1d-vm0.entry.fr0528.art
@@ -104,20 +89,7 @@ proxies:
   alterId: 1
   cipher: auto
   client-fingerprint: chrome
-  name: 🇯🇵 JP-04 · 67ms
-  network: tcp
-  port: 11773
-  server: glso9xa-g01.jp02-e3-vm0.entry.fr0528.art
-  skip-cert-verify: false
-  tls: false
-  type: vmess
-  udp: true
-  uuid: 1a9f857f-9a07-3a8c-a155-f9ab3c457343
--
-  alterId: 1
-  cipher: auto
-  client-fingerprint: chrome
-  name: 🇯🇵 JP-05 · 101ms
+  name: 🇯🇵 JP-03 · 112ms
   network: tcp
   port: 11773
   server: 3wdoup6-g01.jp02-e3-vm0.entry.fr0528.art
@@ -127,105 +99,53 @@ proxies:
   udp: true
   uuid: 1a9f857f-9a07-3a8c-a155-f9ab3c457343
 -
-  name: 🇱🇺 LU-01 · 166ms
-  password: None
-  port: 443
-  server: 185.221.132.226
-  skip-cert-verify: true
+  alterId: 1
+  cipher: auto
+  client-fingerprint: chrome
+  name: 🇯🇵 JP-04 · 124ms
+  network: tcp
+  port: 21581
+  server: gls7yp6-g01.jp03-j7-vm0.entry.fr0528.art
+  servername: gls7yp6-g01.jp03-j7-vm0.entry.fr0528.art
+  skip-cert-verify: false
   tls: true
-  type: http
+  type: vmess
+  udp: true
+  uuid: 1a9f857f-9a07-3a8c-a155-f9ab3c457343
 -
-  name: 🇩🇪 DE-01 · 175ms
+  name: 🇩🇪 DE-01 · 127ms
   type: vless
   network: ws
-  server: 154.218.15.250
-  port: 2083
-  uuid: 40af9131-d540-448a-bc56-5bba147a1dc3
-  servername: proxy-1cu.pages.dev
+  server: 155.212.240.10
+  port: 443
+  uuid: f27b6f65-6e59-4f89-b929-afa397ca587f
+  servername: n.bitpulse.me
   skip-cert-verify: false
   tls: true
   udp: true
   tfo: false
+  client-fingerprint: chrome
   ws-opts:
     headers:
-      Host: proxy-1cu.pages.dev
-    path: /
+      Host: n.bitpulse.me
+    path: "/019bcbad-3813-7cce-8786-3ac0e418f128?ed"
 -
-  name: 🇮🇪 IE-01 · 175ms
-  port: 443
-  server: 149.88.96.1
-  skip-cert-verify: true
-  tls: true
-  type: http
--
-  name: 🇭🇰 HK-01 · 176ms
-  password: "<password>"
-  port: 8443
-  server: 834feb9d-t9zts0-t9x9zr-1lkt0.hkt.cdnhuawei.com
-  sni: 834feb9d-t9zts0-t9x9zr-1lkt0.hkt.cdnhuawei.com
-  tls: true
-  type: http
-  username: cd1b0ae0-4010-11ee-953a-f23c9164ca5d
--
-  name: 🇮🇪 IE-02 · 178ms
-  port: 443
-  server: 34.249.214.108
-  skip-cert-verify: true
-  tls: true
-  type: http
-  udp: true
--
-  type: hysteria
-  name: 🇫🇷 FR-01 · 179ms
-  server: 62.210.28.175
-  port: 24667
-  password: dongtaiwang.com
-  tls: true
-  servername: bing.com
-  sni: bing.com
-  skip-cert-verify: true
-  alpn:
-    - h3
-  up: 11
-  down: 55
-  auth-str: dongtaiwang.com
--
-  alpn:
-    - h3
-  auth-str: dongtaiwang.com
-  down: 55 Mbps
-  name: 🇫🇷 FR-02 · 179ms
-  port: 24667
-  protocol: udp
-  server: 62.210.28.175
-  skip-cert-verify: true
-  sni: bing.com
-  type: hysteria
-  up: 11 Mbps
--
-  name: 🇪🇪 EE-01 · 180ms
-  port: 9443
-  server: 95.153.32.2
-  skip-cert-verify: true
-  tls: true
-  type: http
--
-  name: 🇨🇿 CZ-01 · 181ms
+  name: 🇷🇺 RU-01 · 163ms
   password: None
-  port: 9443
-  server: 152.233.16.174
+  port: 1446
+  server: 46.29.166.134
   skip-cert-verify: true
   tls: true
   type: http
 -
-  name: 🇦🇹 AT-01 · 183ms
+  name: 🇧🇪 BE-01 · 174ms
   port: 443
-  server: 146.70.244.2
+  server: 146.70.176.242
   skip-cert-verify: true
   tls: true
   type: http
 -
-  name: 🇨🇦 CA-01 · 192ms
+  name: 🇨🇦 CA-01 · 186ms
   type: vmess
   network: ws
   server: wwww.speedtest.org
@@ -240,26 +160,17 @@ proxies:
       Host: www.windowsmsidownloads.com
     path: /truth
 -
-  name: 🇷🇴 RO-01 · 192ms
+  name: 🇸🇪 SE-01 · 186ms
   password: None
-  port: 9002
-  server: 193.176.84.20
+  port: 443
+  server: 146.70.242.146
   skip-cert-verify: true
   tls: true
   type: http
 -
-  name: 🇦🇱 AL-01 · 196ms
-  password: None
-  port: 443
-  server: 31.171.154.66
-  skip-cert-verify: true
-  tls: true
-  type: http
--
-  name: 🇬🇧 GB-01 · 197ms
-  password: None
-  port: 443
-  server: 84.17.50.193
+  name: 🇫🇷 FR-01 · 193ms
+  port: 9443
+  server: 213.139.9.142
   skip-cert-verify: true
   tls: true
   type: http
@@ -270,30 +181,20 @@ proxy-groups:
   proxies:
     - ♻️ 自动选择
     - 🔯 故障转移
-    - 🇭🇰 香港
     - 🇯🇵 日本
     - 🇪🇺 欧洲
     - 🌍 其他
     - 🎯 全球直连
-    - 🇯🇵 JP-01 · 53ms
-    - 🇯🇵 JP-02 · 54ms
-    - 🇯🇵 JP-03 · 66ms
-    - 🇯🇵 JP-04 · 67ms
-    - 🇯🇵 JP-05 · 101ms
-    - 🇱🇺 LU-01 · 166ms
-    - 🇩🇪 DE-01 · 175ms
-    - 🇮🇪 IE-01 · 175ms
-    - 🇭🇰 HK-01 · 176ms
-    - 🇮🇪 IE-02 · 178ms
-    - 🇫🇷 FR-01 · 179ms
-    - 🇫🇷 FR-02 · 179ms
-    - 🇪🇪 EE-01 · 180ms
-    - 🇨🇿 CZ-01 · 181ms
-    - 🇦🇹 AT-01 · 183ms
-    - 🇨🇦 CA-01 · 192ms
-    - 🇷🇴 RO-01 · 192ms
-    - 🇦🇱 AL-01 · 196ms
-    - 🇬🇧 GB-01 · 197ms
+    - 🇯🇵 JP-01 · 50ms
+    - 🇯🇵 JP-02 · 92ms
+    - 🇯🇵 JP-03 · 112ms
+    - 🇯🇵 JP-04 · 124ms
+    - 🇩🇪 DE-01 · 127ms
+    - 🇷🇺 RU-01 · 163ms
+    - 🇧🇪 BE-01 · 174ms
+    - 🇨🇦 CA-01 · 186ms
+    - 🇸🇪 SE-01 · 186ms
+    - 🇫🇷 FR-01 · 193ms
 -
   name: ♻️ 自动选择
   type: url-test
@@ -302,58 +203,32 @@ proxy-groups:
   tolerance: 50
   lazy: false
   proxies:
-    - 🇯🇵 JP-01 · 53ms
-    - 🇯🇵 JP-02 · 54ms
-    - 🇯🇵 JP-03 · 66ms
-    - 🇯🇵 JP-04 · 67ms
-    - 🇯🇵 JP-05 · 101ms
-    - 🇱🇺 LU-01 · 166ms
-    - 🇩🇪 DE-01 · 175ms
-    - 🇮🇪 IE-01 · 175ms
-    - 🇭🇰 HK-01 · 176ms
-    - 🇮🇪 IE-02 · 178ms
-    - 🇫🇷 FR-01 · 179ms
-    - 🇫🇷 FR-02 · 179ms
-    - 🇪🇪 EE-01 · 180ms
-    - 🇨🇿 CZ-01 · 181ms
-    - 🇦🇹 AT-01 · 183ms
-    - 🇨🇦 CA-01 · 192ms
-    - 🇷🇴 RO-01 · 192ms
-    - 🇦🇱 AL-01 · 196ms
-    - 🇬🇧 GB-01 · 197ms
+    - 🇯🇵 JP-01 · 50ms
+    - 🇯🇵 JP-02 · 92ms
+    - 🇯🇵 JP-03 · 112ms
+    - 🇯🇵 JP-04 · 124ms
+    - 🇩🇪 DE-01 · 127ms
+    - 🇷🇺 RU-01 · 163ms
+    - 🇧🇪 BE-01 · 174ms
+    - 🇨🇦 CA-01 · 186ms
+    - 🇸🇪 SE-01 · 186ms
+    - 🇫🇷 FR-01 · 193ms
 -
   name: 🔯 故障转移
   type: fallback
   url: "https://www.gstatic.com/generate_204"
   interval: 300
   proxies:
-    - 🇯🇵 JP-01 · 53ms
-    - 🇯🇵 JP-02 · 54ms
-    - 🇯🇵 JP-03 · 66ms
-    - 🇯🇵 JP-04 · 67ms
-    - 🇯🇵 JP-05 · 101ms
-    - 🇱🇺 LU-01 · 166ms
-    - 🇩🇪 DE-01 · 175ms
-    - 🇮🇪 IE-01 · 175ms
-    - 🇭🇰 HK-01 · 176ms
-    - 🇮🇪 IE-02 · 178ms
-    - 🇫🇷 FR-01 · 179ms
-    - 🇫🇷 FR-02 · 179ms
-    - 🇪🇪 EE-01 · 180ms
-    - 🇨🇿 CZ-01 · 181ms
-    - 🇦🇹 AT-01 · 183ms
-    - 🇨🇦 CA-01 · 192ms
-    - 🇷🇴 RO-01 · 192ms
-    - 🇦🇱 AL-01 · 196ms
-    - 🇬🇧 GB-01 · 197ms
--
-  name: 🇭🇰 香港
-  type: url-test
-  url: "https://www.gstatic.com/generate_204"
-  interval: 300
-  tolerance: 50
-  proxies:
-    - 🇭🇰 HK-01 · 176ms
+    - 🇯🇵 JP-01 · 50ms
+    - 🇯🇵 JP-02 · 92ms
+    - 🇯🇵 JP-03 · 112ms
+    - 🇯🇵 JP-04 · 124ms
+    - 🇩🇪 DE-01 · 127ms
+    - 🇷🇺 RU-01 · 163ms
+    - 🇧🇪 BE-01 · 174ms
+    - 🇨🇦 CA-01 · 186ms
+    - 🇸🇪 SE-01 · 186ms
+    - 🇫🇷 FR-01 · 193ms
 -
   name: 🇯🇵 日本
   type: url-test
@@ -361,11 +236,10 @@ proxy-groups:
   interval: 300
   tolerance: 50
   proxies:
-    - 🇯🇵 JP-01 · 53ms
-    - 🇯🇵 JP-02 · 54ms
-    - 🇯🇵 JP-03 · 66ms
-    - 🇯🇵 JP-04 · 67ms
-    - 🇯🇵 JP-05 · 101ms
+    - 🇯🇵 JP-01 · 50ms
+    - 🇯🇵 JP-02 · 92ms
+    - 🇯🇵 JP-03 · 112ms
+    - 🇯🇵 JP-04 · 124ms
 -
   name: 🇪🇺 欧洲
   type: url-test
@@ -373,18 +247,11 @@ proxy-groups:
   interval: 300
   tolerance: 50
   proxies:
-    - 🇱🇺 LU-01 · 166ms
-    - 🇩🇪 DE-01 · 175ms
-    - 🇮🇪 IE-01 · 175ms
-    - 🇮🇪 IE-02 · 178ms
-    - 🇫🇷 FR-01 · 179ms
-    - 🇫🇷 FR-02 · 179ms
-    - 🇪🇪 EE-01 · 180ms
-    - 🇨🇿 CZ-01 · 181ms
-    - 🇦🇹 AT-01 · 183ms
-    - 🇷🇴 RO-01 · 192ms
-    - 🇦🇱 AL-01 · 196ms
-    - 🇬🇧 GB-01 · 197ms
+    - 🇩🇪 DE-01 · 127ms
+    - 🇷🇺 RU-01 · 163ms
+    - 🇧🇪 BE-01 · 174ms
+    - 🇸🇪 SE-01 · 186ms
+    - 🇫🇷 FR-01 · 193ms
 -
   name: 🌍 其他
   type: url-test
@@ -392,7 +259,7 @@ proxy-groups:
   interval: 300
   tolerance: 50
   proxies:
-    - 🇨🇦 CA-01 · 192ms
+    - 🇨🇦 CA-01 · 186ms
 -
   name: 🎯 全球直连
   type: select

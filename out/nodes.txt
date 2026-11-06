@@ -1,22 +1,13 @@
-# 免费节点清单  2026-11-06 05:42
+# 免费节点清单  2026-11-06 06:07
 # 序号 | 地区 | 协议 | 服务器:端口 | 延迟(ms)
 
-  1 | JP | vmess     | gwsumx2-g01.jp04-1d-vm0.entry.fr0528.art:444 | 53
-  2 | JP | vmess     | gls7yp6-g01.jp03-j7-vm0.entry.fr0528.art:21581 | 54
-  3 | JP | vmess     | 3ldu9p6-g01.jp04-1d-vm0.entry.fr0528.art:444 | 66
-  4 | JP | vmess     | glso9xa-g01.jp02-e3-vm0.entry.fr0528.art:11773 | 67
-  5 | JP | vmess     | 3wdoup6-g01.jp02-e3-vm0.entry.fr0528.art:11773 | 101
-  6 | LU | http      | 185.221.132.226:443 | 166
-  7 | DE | vless     | 154.218.15.250:2083 | 175
-  8 | IE | http      | 149.88.96.1:443 | 175
-  9 | HK | http      | 834feb9d-t9zts0-t9x9zr-1lkt0.hkt.cdnhuawei.com:8443 | 176
- 10 | IE | http      | 34.249.214.108:443 | 178
- 11 | FR | hysteria  | 62.210.28.175:24667 | 179
- 12 | FR | hysteria  | 62.210.28.175:24667 | 179
- 13 | EE | http      | 95.153.32.2:9443 | 180
- 14 | CZ | http      | 152.233.16.174:9443 | 181
- 15 | AT | http      | 146.70.244.2:443 | 183
- 16 | CA | vmess     | wwww.speedtest.org:443 | 192
- 17 | RO | http      | 193.176.84.20:9002 | 192
- 18 | AL | http      | 31.171.154.66:443 | 196
- 19 | GB | http      | 84.17.50.193:443 | 197
+  1 | JP | vmess     | gwsumx2-g01.jp04-1d-vm0.entry.fr0528.art:444 | 50
+  2 | JP | vmess     | 3ldu9p6-g01.jp04-1d-vm0.entry.fr0528.art:444 | 92
+  3 | JP | vmess     | 3wdoup6-g01.jp02-e3-vm0.entry.fr0528.art:11773 | 112
+  4 | JP | vmess     | gls7yp6-g01.jp03-j7-vm0.entry.fr0528.art:21581 | 124
+  5 | DE | vless     | 155.212.240.10:443 | 127
+  6 | RU | http      | 46.29.166.134:1446 | 163
+  7 | BE | http      | 146.70.176.242:443 | 174
+  8 | CA | vmess     | wwww.speedtest.org:443 | 186
+  9 | SE | http      | 146.70.242.146:443 | 186
+ 10 | FR | http      | 213.139.9.142:9443 | 193
