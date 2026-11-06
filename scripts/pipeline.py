@@ -7,8 +7,10 @@
 下发的硬标准（全部满足才写进订阅）：
     1. 经内核实测能打开 https://www.google.com/generate_204   （返回 204）
     2. 经内核实测能打开 https://www.youtube.com/              （返回 200）
-    3. 谷歌延迟的中位数 ≤ --max-delay（默认 200ms）
+    3. 机房（美国）到节点的延迟中位数 ≤ --max-delay（默认 200ms）
     4. 多轮探测全部命中（--min-hits，默认 = --verify-rounds）
+    5. 上海探针（globalping.io）实测“上海 → 节点”RTT ≤ --cn-max-delay（默认 200ms）
+       —— 这一条才决定你在国内用起来快不快，节点名里的数字就是它
 
 用法:
     python scripts/pipeline.py                     # 默认输出 out/flclash-free-nodes.yaml
@@ -664,7 +666,134 @@ def verify_sites(exe, proxies, workdir, workers, rounds, timeout_ms, max_delay, 
     return result, stat
 
 
-# ---------------------------------------------------------------- 5. 归属地
+# ---------------------------------------------------------------- 5. 上海探针
+# GitHub 的机器在美国，只能证明“节点能出去看谷歌/YouTube”；而你在上海访问这个节点
+# 到底多快，必须在国内量。globalping.io 有开放 API 和国内探针（上海/杭州/南京…），
+# 用 mtr(TCP) 或 ping 从探针到节点 IP:端口 的 RTT，就是“上海 -> 节点”的真实延迟。
+# 免费额度 250 次/小时（1 个探针 = 1 次），所以默认只量通过初筛的候选、并做了预算控制。
+GP_API = "https://api.globalping.io/v1/measurements"
+GP_UA = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) flclash-pipeline"}
+GP_CITIES = [{"city": "Shanghai", "country": "CN"},
+             {"city": "Hangzhou", "country": "CN"},
+             {"city": "Nanjing", "country": "CN"}]
+_gp_budget = {"remaining": 999}
+
+
+def _gp_call(url, payload=None, timeout=45):
+    h = dict(GP_UA)
+    data = None
+    if payload is not None:
+        data = json.dumps(payload).encode()
+        h["Content-Type"] = "application/json"
+    req = urllib.request.Request(url, data=data, headers=h)
+    with urllib.request.urlopen(req, timeout=timeout) as r:
+        return json.loads(r.read().decode()), dict(r.headers)
+
+
+def _gp_ms(res):
+    """从 globalping 结果里取“到目标的 RTT”：mtr 有结构化 hops，ping 只有原始文本"""
+    for r in res.get("results", []):
+        robj = r.get("result") or {}
+        hops = [h for h in (robj.get("hops") or [])
+                if (h.get("stats") or {}).get("avg") is not None]
+        if hops:
+            return float(hops[-1]["stats"]["avg"])
+        raw = robj.get("rawOutput")
+        if raw:
+            vals = [float(x) for x in re.findall(r"time[=<]\s*([\d.]+)", str(raw))]
+            if vals:
+                vals.sort()
+                return vals[len(vals) // 2]
+    return None
+
+
+def cn_probe(target, port, city, timeout_s=90):
+    """从 city 探针量一次 target 的 RTT。先 mtr-TCP（能穿透只放 TCP 的机器），
+    没拿到数据再用 ping（照顾 hysteria2 这类只开 UDP 的节点）。返回 (ms, 说明)。"""
+    plan = [("mtr", {"type": "mtr", "target": target, "locations": [city],
+                     "measurementOptions": {"protocol": "TCP", "port": int(port)}, "limit": 1}),
+            ("ping", {"type": "ping", "target": target, "locations": [city],
+                      "measurementOptions": {"packets": 3}, "limit": 1})]
+    for kind, payload in plan:
+        if _gp_budget["remaining"] <= 1:
+            return None, "额度用尽"
+        try:
+            j, hdrs = _gp_call(GP_API, payload)
+        except urllib.error.HTTPError as e:
+            if e.code == 429:
+                _gp_budget["remaining"] = 0
+                return None, "限流 429"
+            continue
+        except Exception:  # noqa: BLE001
+            continue
+        try:
+            _gp_budget["remaining"] = int(hdrs.get("X-RateLimit-Remaining", 999))
+        except Exception:  # noqa: BLE001
+            pass
+        mid = j.get("id")
+        if not mid:
+            continue
+        t0 = time.time()
+        while time.time() - t0 < timeout_s:
+            time.sleep(2)
+            try:
+                res, _ = _gp_call("%s/%s" % (GP_API, mid))
+            except Exception:  # noqa: BLE001
+                continue
+            if res.get("status") == "finished":
+                ms = _gp_ms(res)
+                if ms:
+                    return int(round(ms)), kind
+                break
+    return None, "探针无响应"
+
+
+def _round_robin_by_cc(nodes, geo):
+    """按国家轮流取，避免预算不够时全被某一类节点占满"""
+    buckets = {}
+    for p in nodes:
+        cc = geo.get(str(p.get("server")), {}).get("cc", "") or "XX"
+        buckets.setdefault(cc, []).append(p)
+    out = []
+    while any(buckets.values()):
+        for cc in list(buckets):
+            if buckets[cc]:
+                out.append(buckets[cc].pop(0))
+    return out
+
+
+def cn_probe_nodes(nodes, geo, cities, workers, timeout_s, budget):
+    """并发从国内探针量每个节点：返回 {(server, port): (ms|null, 说明)}"""
+    _gp_budget["remaining"] = budget
+    todo = _round_robin_by_cc(nodes, geo)[:budget]
+    if len(todo) < len(nodes):
+        log("  预算 %d 个，本次只量 %d 个（按国家轮流挑）" % (budget, len(todo)))
+    out, done = {}, 0
+    t0 = time.time()
+
+    def one(p):
+        return (str(p.get("server")), int(p.get("port") or 443)), \
+            cn_probe(str(p.get("server")), p.get("port") or 443, cities[0], timeout_s)
+
+    with ThreadPoolExecutor(max_workers=max(1, workers)) as ex:
+        futs = [ex.submit(one, p) for p in todo]
+        for f in as_completed(futs):
+            try:
+                key, (ms, how) = f.result()
+            except Exception:  # noqa: BLE001
+                continue
+            out[key] = (ms, how)
+            done += 1
+            if done % 20 == 0:
+                got = sum(1 for v in out.values() if v[0])
+                log("    %d/%d 已量（有数据 %d）%.0fs  剩余额度 %d"
+                    % (done, len(todo), got, time.time() - t0, _gp_budget["remaining"]))
+    log("  探针测量完成 %.0fs，有数据 %d / %d" % (time.time() - t0,
+                                             sum(1 for v in out.values() if v[0]), len(out)))
+    return out
+
+
+# ---------------------------------------------------------------- 6. 归属地
 def geolocate(servers):
     ips = {}
     for srv in set(servers):
@@ -697,7 +826,7 @@ def geolocate(servers):
     return {srv: info.get(ip) or {"cc": "", "isp": ""} for srv, ip in ips.items()}
 
 
-# ---------------------------------------------------------------- 5. 输出
+# ---------------------------------------------------------------- 8. 输出
 REGION_ORDER = [("HK", "🇭🇰 香港"), ("TW", "🇹🇼 台湾"), ("JP", "🇯🇵 日本"), ("SG", "🇸🇬 新加坡"),
                 ("US", "🇺🇸 美国"), ("KR", "🇰🇷 韩国")]
 EU = {"NL", "DE", "GB", "FR", "IT", "RU", "CH", "SE", "CZ", "LV", "AT", "IE", "FI", "NO", "DK",
@@ -809,8 +938,10 @@ def build(nodes, geo, out_path, workers_note, selfhost=None, public_path=None):
                 stamp, time.strftime("%z"), len(proxies) + len(sh),
                 "（自建 %d + 免费 %d）" % (len(sh), len(proxies)) if sh else ""),
             "# 数据来源: GitHub 上每日更新的公开免费节点库，合并去重后逐个实测：",
-            "#   谷歌 (www.google.com/generate_204) 与 YouTube (www.youtube.com) 都能真打开，",
-            "#   且延迟 ≤ %dms —— 打不开的直接不下发，导入后不用再自己一个个试。" % DELAY_GATE,
+            "#   ① 谷歌 (www.google.com/generate_204) 与 YouTube (www.youtube.com) 都能真打开；",
+            ("#   ② 上海探针（globalping.io）实测“上海 → 节点”RTT ≤ %dms，节点名里的数字就是上海延迟。"
+             % DELAY_GATE_CN) if DELAY_GATE_CN else
+            ("#   ② 机房实测延迟 ≤ %dms（未启用上海探针）" % DELAY_GATE),
             "# 本文件由 GitHub Actions 自动生成，请勿手工修改",
         ]
         if DELAY_GATE_ASIA:
@@ -909,8 +1040,9 @@ def build(nodes, geo, out_path, workers_note, selfhost=None, public_path=None):
 
 
 nodes_delay = {}
-DELAY_GATE = 200      # 延迟门槛（ms），由 main() 按 --max-delay 覆盖，仅用于写进配置注释
+DELAY_GATE = 200      # 机房延迟门槛（ms），由 main() 按 --max-delay 覆盖，仅用于写进配置注释
 DELAY_GATE_ASIA = 0   # 亚太单独门槛，由 main() 按 --max-delay-asia 覆盖
+DELAY_GATE_CN = 0     # 上海探针门槛，由 main() 按 --cn-max-delay 覆盖（>0 表示用了上海探针）
 
 # mihomo 校验 GEOSITE/GEOIP 规则时需要地理库；默认会自己去 GitHub 下载，
 # 一旦下载失败整个配置校验就失败 —— 所以这里先带镜像把它预置好。
@@ -1004,7 +1136,17 @@ def main():
                     help="延迟门槛（毫秒）：谷歌 204 的中位延迟超过它就下发时丢弃，默认 200")
     ap.add_argument("--max-delay-asia", type=int, default=0,
                     help="亚太节点（港澳台日韩新）单独放宽到 N ms，0=不区分。"
-                         "CI 在美国机房，港日节点在那边天然 200ms+，但在国内用很快")
+                         "仅在关闭上海探针（--no-cn-check）或探针拿不到数据时起兜底作用")
+    ap.add_argument("--no-cn-check", dest="cn_check", action="store_false",
+                    help="关闭上海探针实测（默认开启）")
+    ap.add_argument("--cn-city", default="Shanghai",
+                    help="国内探针城市，默认 Shanghai（globalping 的国内探针城市）")
+    ap.add_argument("--cn-max-delay", type=int, default=200,
+                    help="上海 -> 节点 的 RTT 门槛（毫秒），超过就下发时丢弃，默认 200")
+    ap.add_argument("--cn-max-nodes", type=int, default=200,
+                    help="本次最多量多少个节点（globalping 免费额度 250 次/小时），默认 200")
+    ap.add_argument("--cn-workers", type=int, default=6,
+                    help="并发创建的探针测量数量，默认 6")
     ap.add_argument("--verify-rounds", type=int, default=2,
                     help="严格验证时每个站点的探测轮数，默认 2")
     ap.add_argument("--verify-timeout", type=int, default=5000,
@@ -1035,7 +1177,7 @@ def main():
     log("参数: workers=%d rounds=%d timeout=%dms max_delay=%dms 输出=%s" % (
         args.workers, args.rounds, args.timeout, args.max_delay, args.out))
 
-    log("[1/7] 抓取节点源")
+    log("[1/8] 抓取节点源")
     ok, failed = fetch_sources()
     if not ok:
         log("没有可用节点源，退出。失败原因：")
@@ -1044,7 +1186,7 @@ def main():
         annotate("所有节点源都抓取失败：%s" % ("; ".join("%s: %s" % (r, e) for r, e in failed[:4])))
         return 1
 
-    log("[2/7] 解析 / 清洗 / 去重")
+    log("[2/8] 解析 / 清洗 / 去重")
     t_parse = time.time()
     sys.path.insert(0, ROOT)
     import yaml  # 延迟导入，便于提示缺包
@@ -1076,7 +1218,7 @@ def main():
         merged = merged[:args.max_candidates]
         log("  [调试] 只取前 %d 个候选参与后续测速" % len(merged))
 
-    log("[3/7] 内核校验")
+    log("[3/8] 内核校验")
     t_val = time.time()
     exe = mihomo_path()
     cfg = os.path.join(work, "validate.yaml")
@@ -1089,7 +1231,7 @@ def main():
     https_url = "https://www.gstatic.com/generate_204"
     fallback_url = "http://cp.cloudflare.com/generate_204"
 
-    log("[4/7] 初筛：真实请求（%d 线程，1 轮）" % args.workers)
+    log("[4/8] 初筛：真实请求（%d 线程，1 轮）" % args.workers)
     quick = {}
     for url in (http_url, fallback_url, https_url):
         quick = measure(exe, merged, work, args.workers, 1, args.timeout, url)
@@ -1102,13 +1244,14 @@ def main():
         return 1
     candidates = [p for p in merged if p["__id"] in quick]
 
-    log("[5/7] 严格验证：谷歌 + YouTube 可达性（%d 轮，延迟门槛 %dms）" %
+    log("[5/8] 严格验证：谷歌 + YouTube 可达性（%d 轮，机房延迟门槛 %dms）" %
         (args.verify_rounds, args.max_delay))
     min_hits = args.min_hits or args.verify_rounds
     min_hits = max(1, min(min_hits, args.verify_rounds))
-    global nodes_delay, DELAY_GATE, DELAY_GATE_ASIA
+    global nodes_delay, DELAY_GATE, DELAY_GATE_ASIA, DELAY_GATE_CN
     DELAY_GATE = args.max_delay
     DELAY_GATE_ASIA = args.max_delay_asia
+    DELAY_GATE_CN = 0                      # 探针真拿到数据后才置为真实门槛（见第 7 步）
     verified, vstat = verify_sites(exe, candidates, work, min(args.workers, 64),
                                    args.verify_rounds, args.verify_timeout,
                                    args.max_delay, min_hits)
@@ -1116,15 +1259,16 @@ def main():
         log("  严格验证无法进行：%s" % vstat["fatal"])
         annotate("严格验证无法进行：%s" % vstat["fatal"])
         return 1
-    log("[6/7] 查询归属地（先查，因为亚太门槛要看国家）")
+    log("[6/8] 查询归属地（先查，因为亚太门槛和探针挑样都要看国家）")
     t_geo = time.time()
     geo = geolocate([str(p.get("server")) for p in candidates])
     log("  已知归属: %d / %d（用时 %.1fs）" % (sum(1 for v in geo.values() if v["cc"]), len(geo),
                                         time.time() - t_geo))
 
     # 亚太放宽：CI 机房在美国，港澳台日韩新节点在那边天然 200ms+，你在国内用反而很快，
-    # 所以给它们单独一个更宽的门槛（--max-delay-asia），别被 200ms 一刀切掉
-    if args.max_delay_asia > 0:
+    # 所以给它们单独一个更宽的门槛（--max-delay-asia），别被 200ms 一刀切掉。
+    # 注意：这只是“没开上海探针/探针拿不到数据”时的兜底，正常情况下由下面第 7 步说了算。
+    if args.max_delay_asia > 0 and not args.cn_check:
         promoted = 0
         for p in candidates:
             info = verified.get(p["__id"])
@@ -1135,10 +1279,58 @@ def main():
                 promoted += 1
         log("  亚太放宽（≤%dms）: 收回 %d 个港澳台日韩新节点" % (args.max_delay_asia, promoted))
 
+    # ---- 第 7 步：上海探针实测，用“上海 -> 节点”的延迟重判 ----
+    cn_hit, cn_miss = 0, 0
+    if args.cn_check:
+        log("[7/8] 上海探针实测（globalping.io，%s）" % args.cn_city)
+        cn_data = cn_probe_nodes(candidates, geo, [{"city": args.cn_city, "country": "CN"}],
+                                 args.cn_workers, 90, args.cn_max_nodes)
+        hit = sorted(v[0] for v in cn_data.values() if v[0])
+        if hit:
+            log("  上海 -> 节点 RTT: 最快 %dms / 中位 %dms / 最慢 %dms（有数据 %d / %d）"
+                % (hit[0], hit[len(hit) // 2], hit[-1], len(hit), len(cn_data)))
+        else:
+            log("  [warn] 探针一个数据都没拿到（限流或网络问题），退回按机房延迟判断")
+        promoted = demoted = 0
+        # GitHub 的 runner 出口 IP 是共享的，250 次/小时可能被别人吃掉，
+        # 所以覆盖不足时不敢用探针结果做“降级”，否则会误杀一堆好节点
+        enough = len(hit) >= max(5, int(len(candidates) * 0.5))
+        if not enough:
+            log("  [warn] 探针覆盖不足（有数据 %d / %d 个候选，可能出口被限流），"
+                "本次仍按机房延迟判断" % (len(hit), len(candidates)))
+        else:
+            for p in candidates:
+                info = verified.get(p["__id"])
+                if not info:
+                    continue
+                ms = cn_data.get((str(p.get("server")), int(p.get("port") or 443)), (None, ""))[0]
+                if not ms:
+                    cn_miss += 1
+                    # 探针量到过东西，但这个节点没数据（端口被判死/超时/额度用尽）：
+                    # 上海能不能用没有证据，先降级，别拿没验过的节点占位
+                    if info["tier"] == "full":
+                        info["tier"] = "slow"
+                    continue
+                cn_hit += 1
+                info["cn"] = ms
+                info["delay"] = ms                 # 名字、排序、门槛全部改用上海实测
+                if ms <= args.cn_max_delay:
+                    if info["tier"] == "slow":
+                        info["tier"] = "full"
+                        promoted += 1
+                elif info["tier"] == "full":
+                    info["tier"] = "slow"          # 机房看着快、上海其实慢 -> 降级
+                    demoted += 1
+            log("  按上海实测重判: 收回 %d 个（≤%dms），降级 %d 个（>%dms），无数据 %d 个"
+                % (promoted, args.cn_max_delay, demoted, args.cn_max_delay, cn_miss))
+        DELAY_GATE_CN = args.cn_max_delay if cn_hit else 0
+
     n_full = sum(1 for v in verified.values() if v["tier"] == "full")
     n_slow = sum(1 for v in verified.values() if v["tier"] == "slow")
     n_gonly = sum(1 for v in verified.values() if v["tier"] == "gonly")
-    log("  谷歌+YouTube 都通，且延迟 ≤%dms: %d 个 ✔" % (args.max_delay, n_full))
+    unit = "上海" if cn_hit else "机房"
+    log("  谷歌+YouTube 都通，且%s延迟 ≤%dms: %d 个 ✔"
+        % (unit, args.cn_max_delay if cn_hit else args.max_delay, n_full))
     log("  延迟超标: %d 个%s" % (n_slow, "，已保留" if args.keep_slow else "，丢弃"))
     log("  YouTube 不通（仅谷歌）: %d 个%s" % (n_gonly, "，已保留" if args.keep_gonly else "，丢弃"))
     log("  两个站点都不通: %d 个，丢弃" % vstat["dead"])
@@ -1146,14 +1338,17 @@ def main():
         log("  只有 YouTube 通、谷歌不通（可疑节点）: %d 个，丢弃" % vstat["youtube_only"])
     ds = sorted(info["delay"] for info in verified.values() if info["delay"])
     if ds:
-        log("  双站都通的节点延迟分布: <100ms %d | 100-200ms %d | 200-400ms %d | 400-800ms %d | >800ms %d"
-            % (sum(1 for d in ds if d < 100), sum(1 for d in ds if 100 <= d < 200),
+        log("  双站都通的节点%s延迟分布: <100ms %d | 100-200ms %d | 200-400ms %d | 400-800ms %d | >800ms %d"
+            % (unit, sum(1 for d in ds if d < 100), sum(1 for d in ds if 100 <= d < 200),
                sum(1 for d in ds if 200 <= d < 400), sum(1 for d in ds if 400 <= d < 800),
                sum(1 for d in ds if d >= 800)))
-        log("  （门槛 %dms；看着太严/太松就调 --max-delay / --max-delay-asia）" % args.max_delay)
+        log("  （当前%s门槛 %dms；太严/太松就调 --cn-max-delay）"
+            % (unit, args.cn_max_delay if cn_hit else args.max_delay))
     if n_full == 0:
-        log("  没有一个节点同时通过谷歌 + YouTube，保留上一版订阅，不下发空配置")
-        annotate("严格验证后 0 个节点可同时访问谷歌和 YouTube（候选 %d 个）" % len(candidates))
+        log("  没有一个节点通过全部门槛，保留上一版订阅，不下发空配置")
+        annotate("最终 0 个节点通过（候选 %d，上海探针有数据 %d）；"
+                 "可能是探针被限流或当天节点质量差，可调 --cn-max-delay"
+                 % (len(candidates), cn_hit))
         return 1
 
     nodes_delay = {}
@@ -1197,7 +1392,7 @@ def main():
                  % (len(alive), args.max_delay, args.min_nodes))
         return 1
 
-    log("[7/7] 生成配置并校验")
+    log("[8/8] 生成配置并校验")
     sh_nodes = load_selfhost(args.selfhost)
     if sh_nodes:
         log("  已载入自建节点 %d 个: %s" % (len(sh_nodes), ", ".join(p["name"] for p in sh_nodes)))
