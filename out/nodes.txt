@@ -1,13 +1,15 @@
-# 免费节点清单  2026-11-06 06:07
+# 免费节点清单  2026-11-07 01:10
 # 序号 | 地区 | 协议 | 服务器:端口 | 延迟(ms)
 
-  1 | JP | vmess     | gwsumx2-g01.jp04-1d-vm0.entry.fr0528.art:444 | 50
-  2 | JP | vmess     | 3ldu9p6-g01.jp04-1d-vm0.entry.fr0528.art:444 | 92
-  3 | JP | vmess     | 3wdoup6-g01.jp02-e3-vm0.entry.fr0528.art:11773 | 112
-  4 | JP | vmess     | gls7yp6-g01.jp03-j7-vm0.entry.fr0528.art:21581 | 124
-  5 | DE | vless     | 155.212.240.10:443 | 127
-  6 | RU | http      | 46.29.166.134:1446 | 163
-  7 | BE | http      | 146.70.176.242:443 | 174
-  8 | CA | vmess     | wwww.speedtest.org:443 | 186
-  9 | SE | http      | 146.70.242.146:443 | 186
- 10 | FR | http      | 213.139.9.142:9443 | 193
+  1 | CN | http      | 120.232.204.58:31343 | 30
+  2 | JP | vmess     | gls7yp6-g01.jp03-j7-vm0.entry.fr0528.art:21581 | 50
+  3 | JP | vmess     | gwsumx2-g01.jp04-1d-vm0.entry.fr0528.art:444 | 52
+  4 | JP | vmess     | 3ldu9p6-g01.jp04-1d-vm0.entry.fr0528.art:444 | 68
+  5 | TW | anytls    | sdf65h46wr.df6h451rh.xin:443 | 74
+  6 | CA | vless     | 104.18.109.147:80 | 135
+  7 | BG | vless     | 89.117.112.40:8880 | 137
+  8 | HK | http      | 834feb9d-t9zts0-t9x9zr-1lkt0.hkt.cdnhuawei.com:8443 | 165
+  9 | ES | vless     | 213.182.201.18:3090 | 179
+ 10 | IE | http      | 149.88.96.1:443 | 189
+ 11 | IE | http      | 149.88.96.1:443 | 189
+ 12 | HU | http      | 146.70.203.18:443 | 193
