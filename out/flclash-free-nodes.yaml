@@ -1,5 +1,5 @@
 # FLClash / Mihomo 订阅 — 免费公共节点
-# 生成时间: 2026-11-09 01:09 (UTC+0000)   节点: 12
+# 生成时间: 2026-11-10 03:49 (UTC+0000)   节点: 5
 # 数据来源: GitHub 上每日更新的公开免费节点库，合并去重后逐个实测：
 #   ① 谷歌 (www.google.com/generate_204) 与 YouTube (www.youtube.com) 都能真打开；
 #   ② 上海探针（globalping.io）实测“上海 → 节点”RTT ≤ 200ms，节点名里的数字就是上海延迟。
@@ -60,33 +60,42 @@ dns:
       - "https://1.12.12.12/dns-query"
 proxies:
 -
-  name: 🇭🇰 HK-01 · 43ms
-  type: vmess
-  network: tcp
-  server: df.668fx.com
-  port: 11353
-  uuid: d105eadc-c3ea-4a82-a299-373d75f2d2b7
-  skip-cert-verify: true
-  alterId: 0
-  cipher: auto
--
-  name: 🇯🇵 JP-01 · 69ms
+  name: 🇹🇼 TW-01 · 46ms
   type: vless
   network: ws
-  server: 38.47.96.220
-  port: 11424
-  uuid: 1d16c6e0-1bbe-435b-b661-90043fee999c
-  servername: notls.lukongtou.eu.org
-  skip-cert-verify: false
+  server: 59.125.69.22
+  port: 443
+  uuid: c1c04450-bf71-4049-ad0c-9cf6d94d9f1f
+  servername: tse1.mm.bing.net
+  skip-cert-verify: true
   tls: true
-  encryption: none
+  udp: true
+  tfo: false
+  client-fingerprint: chrome
   ws-opts:
     headers:
-      Host: notls.lukongtou.eu.org
-    path: Telegram-WangCai2🇨🇳
+      Host: tse1.mm.bing.net
+    path: /81574b6b-c9d7-44a0-b83d-dad56e8cb530
+-
+  name: 🇯🇵 JP-01 · 66ms
+  type: vless
+  network: ws
+  server: 3.169.9.125
+  port: 443
+  uuid: 67cd3349-f789-4cbb-8b91-4b6b1654ce7c
+  servername: d2ex4nxd2e01ub.cloudfront.net
+  skip-cert-verify: false
+  tls: true
+  udp: true
+  tfo: false
+  client-fingerprint: chrome
+  ws-opts:
+    headers:
+      Host: d2ex4nxd2e01ub.cloudfront.net
+    path: /
 -
   type: anytls
-  name: 🇹🇼 TW-01 · 96ms
+  name: 🇹🇼 TW-02 · 83ms
   server: sdf65h46wr.df6h451rh.xin
   port: 443
   password: 0324fbc29561
@@ -95,16 +104,7 @@ proxies:
   sni: images.ctfassets.net
   skip-cert-verify: true
 -
-  type: ss
-  name: 🇮🇹 IT-01 · 176ms
-  server: 202.50.253.36
-  port: 19999
-  password: "ZRpgaBeGxtENIXgvhpkZBKz9GnWRS2dYcx9O+a2iwN4="
-  cipher: aes-256-gcm
-  tls: false
-  skip-cert-verify: false
--
-  name: 🇩🇪 DE-01 · 180ms
+  name: 🇩🇪 DE-01 · 172ms
   type: vless
   network: ws
   server: 178.104.70.11
@@ -117,100 +117,12 @@ proxies:
       Host: parsa-panel-dy55x.railway1385-2a46.workers.dev
     path: "/fp=firefox"
 -
-  client-fingerprint: firefox
-  name: 🇩🇪 DE-02 · 180ms
-  network: ws
+  name: 🇦🇹 AT-01 · 187ms
   port: 443
-  server: 178.104.70.11
-  servername: parsa-panel-dy55x.railway1385-2a46.workers.dev
-  tls: true
-  type: vless
-  uuid: 64726966-0000-4000-8000-740000000000
-  ws-opts:
-    headers:
-      Host: parsa-panel-dy55x.railway1385-2a46.workers.dev
-    path: /
--
-  name: 🇮🇪 IE-01 · 184ms
-  port: 443
-  server: 34.249.214.108
+  server: 146.70.244.18
   skip-cert-verify: true
   tls: true
   type: http
-  udp: true
--
-  name: 🇨🇦 CA-01 · 186ms
-  type: vless
-  network: ws
-  server: 104.20.45.141
-  port: 443
-  uuid: 50414e45-4c5f-5a45-5553-7e7818beb9aa
-  servername: razk50e1uvss.amirhoseyn-meshki.workers.dev
-  tls: true
-  client-fingerprint: unsafe
-  encryption: none
-  ws-opts:
-    headers:
-      Host: razk50e1uvss.amirhoseyn-meshki.workers.dev
-    path: /stream/PANEL_ZEUS/7e7818beb9aa
--
-  name: 🇷🇺 RU-01 · 187ms
-  type: vless
-  network: xhttp
-  server: 201.34.142.108
-  port: 443
-  uuid: 4777d90d-265b-4927-a0d1-63f36ed1421c
-  servername: 201.34.142.108
-  tls: true
-  udp: true
-  client-fingerprint: firefox
-  xhttp-opts:
-    mode: auto
-    path: /assets/nlrelay01/
--
-  name: 🇨🇦 CA-02 · 190ms
-  type: vless
-  network: ws
-  server: 188.114.97.6
-  port: 8080
-  uuid: 93fa8bdb-9cca-4a3e-8355-b7c12e4f595e
-  servername: fornewiran.ade-1000.workers.dev
-  tls: false
-  ws-opts:
-    headers:
-      Host: fornewiran.ade-1000.workers.dev
-    path: "/vl/yLWNcuUuw1jlJpkDhGy?ed=2560"
--
-  name: 🇨🇦 CA-03 · 192ms
-  type: vless
-  network: ws
-  server: 188.114.97.6
-  port: 443
-  uuid: fc60147e-76b8-4bc5-b691-90b2da79e3d2
-  servername: nautica-cff.kloningstrife002.workers.dev
-  tls: true
-  client-fingerprint: unsafe
-  encryption: none
-  ws-opts:
-    headers:
-      Host: nautica-cff.kloningstrife002.workers.dev
-    path: /138.2.74.219-28616
--
-  client-fingerprint: chrome
-  encryption: none
-  name: 🇨🇦 CA-04 · 192ms
-  network: ws
-  port: 443
-  server: 188.114.97.6
-  servername: investor.fb.com.r3xxe.eu.cc
-  skip-cert-verify: false
-  tls: true
-  type: vless
-  uuid: 1246e51a-97cd-4d5c-9842-76dd3420bbe2
-  ws-opts:
-    headers:
-      Host: investor.fb.com.r3xxe.eu.cc
-    path: /id-tksi
 proxy-groups:
 -
   name: 🚀 节点选择
@@ -218,24 +130,15 @@ proxy-groups:
   proxies:
     - ♻️ 自动选择
     - 🔯 故障转移
-    - 🇭🇰 香港
     - 🇹🇼 台湾
     - 🇯🇵 日本
     - 🇪🇺 欧洲
-    - 🌍 其他
     - 🎯 全球直连
-    - 🇭🇰 HK-01 · 43ms
-    - 🇯🇵 JP-01 · 69ms
-    - 🇹🇼 TW-01 · 96ms
-    - 🇮🇹 IT-01 · 176ms
-    - 🇩🇪 DE-01 · 180ms
-    - 🇩🇪 DE-02 · 180ms
-    - 🇮🇪 IE-01 · 184ms
-    - 🇨🇦 CA-01 · 186ms
-    - 🇷🇺 RU-01 · 187ms
-    - 🇨🇦 CA-02 · 190ms
-    - 🇨🇦 CA-03 · 192ms
-    - 🇨🇦 CA-04 · 192ms
+    - 🇹🇼 TW-01 · 46ms
+    - 🇯🇵 JP-01 · 66ms
+    - 🇹🇼 TW-02 · 83ms
+    - 🇩🇪 DE-01 · 172ms
+    - 🇦🇹 AT-01 · 187ms
 -
   name: ♻️ 自动选择
   type: url-test
@@ -244,44 +147,22 @@ proxy-groups:
   tolerance: 50
   lazy: false
   proxies:
-    - 🇭🇰 HK-01 · 43ms
-    - 🇯🇵 JP-01 · 69ms
-    - 🇹🇼 TW-01 · 96ms
-    - 🇮🇹 IT-01 · 176ms
-    - 🇩🇪 DE-01 · 180ms
-    - 🇩🇪 DE-02 · 180ms
-    - 🇮🇪 IE-01 · 184ms
-    - 🇨🇦 CA-01 · 186ms
-    - 🇷🇺 RU-01 · 187ms
-    - 🇨🇦 CA-02 · 190ms
-    - 🇨🇦 CA-03 · 192ms
-    - 🇨🇦 CA-04 · 192ms
+    - 🇹🇼 TW-01 · 46ms
+    - 🇯🇵 JP-01 · 66ms
+    - 🇹🇼 TW-02 · 83ms
+    - 🇩🇪 DE-01 · 172ms
+    - 🇦🇹 AT-01 · 187ms
 -
   name: 🔯 故障转移
   type: fallback
   url: "https://www.gstatic.com/generate_204"
   interval: 300
   proxies:
-    - 🇭🇰 HK-01 · 43ms
-    - 🇯🇵 JP-01 · 69ms
-    - 🇹🇼 TW-01 · 96ms
-    - 🇮🇹 IT-01 · 176ms
-    - 🇩🇪 DE-01 · 180ms
-    - 🇩🇪 DE-02 · 180ms
-    - 🇮🇪 IE-01 · 184ms
-    - 🇨🇦 CA-01 · 186ms
-    - 🇷🇺 RU-01 · 187ms
-    - 🇨🇦 CA-02 · 190ms
-    - 🇨🇦 CA-03 · 192ms
-    - 🇨🇦 CA-04 · 192ms
--
-  name: 🇭🇰 香港
-  type: url-test
-  url: "https://www.gstatic.com/generate_204"
-  interval: 300
-  tolerance: 50
-  proxies:
-    - 🇭🇰 HK-01 · 43ms
+    - 🇹🇼 TW-01 · 46ms
+    - 🇯🇵 JP-01 · 66ms
+    - 🇹🇼 TW-02 · 83ms
+    - 🇩🇪 DE-01 · 172ms
+    - 🇦🇹 AT-01 · 187ms
 -
   name: 🇹🇼 台湾
   type: url-test
@@ -289,7 +170,8 @@ proxy-groups:
   interval: 300
   tolerance: 50
   proxies:
-    - 🇹🇼 TW-01 · 96ms
+    - 🇹🇼 TW-01 · 46ms
+    - 🇹🇼 TW-02 · 83ms
 -
   name: 🇯🇵 日本
   type: url-test
@@ -297,7 +179,7 @@ proxy-groups:
   interval: 300
   tolerance: 50
   proxies:
-    - 🇯🇵 JP-01 · 69ms
+    - 🇯🇵 JP-01 · 66ms
 -
   name: 🇪🇺 欧洲
   type: url-test
@@ -305,22 +187,8 @@ proxy-groups:
   interval: 300
   tolerance: 50
   proxies:
-    - 🇮🇹 IT-01 · 176ms
-    - 🇩🇪 DE-01 · 180ms
-    - 🇩🇪 DE-02 · 180ms
-    - 🇮🇪 IE-01 · 184ms
-    - 🇷🇺 RU-01 · 187ms
--
-  name: 🌍 其他
-  type: url-test
-  url: "https://www.gstatic.com/generate_204"
-  interval: 300
-  tolerance: 50
-  proxies:
-    - 🇨🇦 CA-01 · 186ms
-    - 🇨🇦 CA-02 · 190ms
-    - 🇨🇦 CA-03 · 192ms
-    - 🇨🇦 CA-04 · 192ms
+    - 🇩🇪 DE-01 · 172ms
+    - 🇦🇹 AT-01 · 187ms
 -
   name: 🎯 全球直连
   type: select
