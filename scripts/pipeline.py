@@ -13,7 +13,7 @@
        —— 这一条才决定你在国内用起来快不快，节点名里的数字就是它
 
 另外每次构建会先复测上一版的节点（老节点优先）：上海 RTT ≤ --carry-max-delay
-（默认 100ms）的保留并排在订阅最前面，超标的淘汰，其余名额照常由抓取流程补足。
+（默认 150ms）的保留并排在订阅最前面，超标的淘汰，其余名额照常由抓取流程补足。
 
 用法:
     python scripts/pipeline.py                     # 默认输出 out/flclash-free-nodes.yaml
@@ -1113,7 +1113,7 @@ nodes_delay = {}
 DELAY_GATE = 200      # 机房延迟门槛（ms），由 main() 按 --max-delay 覆盖，仅用于写进配置注释
 DELAY_GATE_ASIA = 0   # 亚太单独门槛，由 main() 按 --max-delay-asia 覆盖
 DELAY_GATE_CN = 0     # 上海探针门槛，由 main() 按 --cn-max-delay 覆盖（>0 表示用了上海探针）
-CARRY_GATE = 100      # 老选手（上一版保留）的上海门槛，由 main() 按 --carry-max-delay 覆盖
+CARRY_GATE = 150      # 老选手（上一版保留）的上海门槛，由 main() 按 --carry-max-delay 覆盖
 
 # mihomo 校验 GEOSITE/GEOIP 规则时需要地理库；默认会自己去 GitHub 下载，
 # 一旦下载失败整个配置校验就失败 —— 所以这里先带镜像把它预置好。
@@ -1220,8 +1220,8 @@ def main():
                     help="并发创建的探针测量数量，默认 4")
     ap.add_argument("--no-carry", action="store_true",
                     help="不优先复测上一版订阅里的节点（默认会先跑一遍老节点）")
-    ap.add_argument("--carry-max-delay", type=int, default=100,
-                    help="老节点的上海 RTT 门槛（毫秒），达标才留下，默认 100")
+    ap.add_argument("--carry-max-delay", type=int, default=150,
+                    help="老节点的上海 RTT 门槛（毫秒），达标才留下，默认 150")
     ap.add_argument("--carry-limit", type=int, default=60,
                     help="最多复测多少个老节点（按上一版的延迟从好到差取），默认 60")
     ap.add_argument("--verify-rounds", type=int, default=2,
