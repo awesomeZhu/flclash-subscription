@@ -1006,7 +1006,8 @@ def build(nodes, geo, out_path, workers_note, selfhost=None, public_path=None):
         g = geo.get(str(p.get("server")), {})
         items.append({"node": p, "cc": g.get("cc", ""), "delay": d["delay"], "hits": d["hits"],
                       "tier": p.get("__tier", "full"),
-                      "carry": bool(p.get("__carry"))})
+                      "carry": bool(p.get("__carry")),
+                      "cn": d.get("cn")})
     # 老选手（上一版保留的）排最前，然后才是完整通过的，其余垫后
     items.sort(key=lambda x: (0 if x["carry"] else 1,
                               TIER_RANK.get(x["tier"], 3), x["delay"], -x["hits"]))
@@ -1017,6 +1018,8 @@ def build(nodes, geo, out_path, workers_note, selfhost=None, public_path=None):
         counters[cc] = counters.get(cc, 0) + 1
         code = cc if cc != "XX" else "未知"
         tag = TIER_TAG.get(it["tier"], "")
+        if DELAY_GATE_CN and it.get("cn") is None:
+            tag += " ·未探针"      # 探针预算用完没量到的，名字上标出来，别和上海实测的混淆
         name = "%s %s-%02d · %dms%s" % (flag(cc), code, counters[cc], it["delay"], tag)
         p = dict(it["node"])
         p.pop("__id", None)
@@ -1533,7 +1536,7 @@ def main():
             continue
         p["__tier"] = info["tier"]
         nodes_delay[p["__id"]] = {"delay": info["delay"], "hits": info["hits"],
-                                  "tests": args.verify_rounds}
+                                  "tests": args.verify_rounds, "cn": info.get("cn")}
     # 兜底：完整通过的太少时，自动补几个“能打开两个站、只是慢”的节点，
     # 免得某天门槛过严直接下发空订阅（它们会单独进「🐢 高延迟备用」，不进主池）
     if args.fallback_slow and len(nodes_delay) < args.min_nodes:
