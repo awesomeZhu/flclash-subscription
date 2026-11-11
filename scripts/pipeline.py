@@ -58,6 +58,18 @@ SOURCES = [
     ("cysk003/freeSub", "main", "clash.yaml"),
     ("ts-sf/fly", "main", "clash"),
     ("free18/v2ray", "main", "c.yaml"),
+    ("chengaopan/AutoMergePublicNodes", "master", "list.yml"),
+]
+
+# 非 GitHub 的每日源站：路径里的 {Y}/{M}/{D} 由 _daily_dates() 按北京日期填充。
+# freeclashnode 和 clashnode 其实是同一家（内容一致），互为备用，重复节点后面会去重。
+# nodefree / v2rayshare 在国内网络会被 TLS 重置（本机实测连不上），但 CI 在美国，通常能抓到；
+# 抓不到时只会多打一行 [skip]，不影响整体。
+EXTRA_SOURCES = [
+    ("freeclashnode.com", "https://freeclashnode.com/uploads/{Y}/{M}/0-{D}.yaml"),
+    ("clashnode.me", "https://clashnode.me/uploads/{Y}/{M}/0-{D}.yaml"),
+    ("nodefree.org", "https://nodefree.org/dy/{Y}/{M}/{D}.yaml"),
+    ("v2rayshare.com", "https://v2rayshare.com/uploads/{Y}/{M}/0-{D}.yaml"),
 ]
 
 ALLOWED_TYPES = {"ss", "ssr", "vmess", "vless", "trojan", "hysteria", "hysteria2", "tuic",
@@ -116,6 +128,17 @@ def mirrors_for(repo, branch, path):
     ]
 
 
+def _daily_dates():
+    """每日源站按“北京日期”发布；runner 是 UTC，所以先 +8 小时再取日期，另外多看前一天"""
+    now = time.time()
+    out = []
+    for back in (0, 1):
+        s = time.strftime("%Y%m%d", time.gmtime(now + 8 * 3600 - back * 86400))
+        if s not in out:
+            out.append(s)
+    return out
+
+
 # ---------------------------------------------------------------- 1. 抓取
 def fetch_sources():
     os.makedirs(CACHE, exist_ok=True)
@@ -147,7 +170,35 @@ def fetch_sources():
         if not done:
             failed.append((repo, errs))
             log("  [skip] %-38s %s" % (repo, " | ".join(errs)[:120]))
-    log("  抓取完成: 成功 %d / %d，用时 %.1fs" % (len(ok), len(SOURCES), time.time() - t0))
+
+    # 非 GitHub 的每日源站（路径里带日期）：今天没有就退回昨天
+    for label, tpl in EXTRA_SOURCES:
+        errs, done = [], False
+        for ymd in _daily_dates():
+            url = tpl.format(Y=ymd[:4], M=ymd[4:6], D=ymd)
+            host = urllib.parse.urlparse(url).netloc
+            try:
+                data = http_get(url, timeout=30, retries=1)
+            except Exception as e:  # noqa: BLE001
+                errs.append("%s -> %s" % (ymd, str(e)[:40]))
+                continue
+            txt = data.decode("utf-8", "ignore")
+            if not re.search(r"^\s*proxies\s*:", txt, re.M):
+                errs.append("%s -> 不是 Clash 格式" % ymd)
+                continue
+            with open(os.path.join(CACHE, "daily_%s_%s.yaml" % (label, ymd)),
+                      "w", encoding="utf-8", newline="\n") as f:
+                f.write(txt)
+            log("  [ok]   %-38s %6.0f KB  (%s/%s)" % (label, len(data) / 1024, host, ymd))
+            ok.append((label, len(data)))
+            done = True
+            break
+        if not done:
+            failed.append((label, errs))
+            log("  [skip] %-38s %s" % (label, " | ".join(errs)[:120]))
+
+    total = len(SOURCES) + len(EXTRA_SOURCES)
+    log("  抓取完成: 成功 %d / %d，用时 %.1fs" % (len(ok), total, time.time() - t0))
     return ok, failed
 
 
@@ -1403,16 +1454,21 @@ def main():
             log("  [warn] 探针结果不可用（测了 %d 个：有数据 %d、连不上 %d、限流/额度 %d），"
                 "本次退回按机房延迟判断" % (measured, len(hit), unreachable, infra))
         else:
-            n_carry_ok = n_carry_drop = 0
+            n_carry_ok = n_carry_drop = cn_unmeasured = 0
             for p in candidates:
                 info = verified.get(p["__id"])
                 if not info:
                     continue
-                ms = cn_data.get((str(p.get("server")), int(p.get("port") or 443)), (None, ""))[0]
+                key = (str(p.get("server")), int(p.get("port") or 443))
+                if key not in cn_data:
+                    # 预算/额度不够，这个节点根本没量到：不能当成“连不上”，保持机房判定
+                    cn_unmeasured += 1
+                    continue
+                ms = cn_data[key][0]
                 limit_ms = args.carry_max_delay if p.get("__carry") else args.cn_max_delay
                 if not ms:
                     cn_miss += 1
-                    # 上海连不上/没数据：不能证明你那边能用，降级（不占主池名额）
+                    # 量了但连不上/无回包：上海用不了，降级（不占主池名额）
                     if info["tier"] == "full":
                         info["tier"] = "slow"
                     if p.get("__carry"):
@@ -1432,8 +1488,9 @@ def main():
                     demoted += 1
                     if p.get("__carry"):
                         n_carry_drop += 1
-            log("  按上海实测重判: 收回 %d 个（≤%dms），降级 %d 个（>%dms 或连不上），无数据 %d 个"
-                % (promoted, args.cn_max_delay, demoted, args.cn_max_delay, cn_miss))
+            log("  按上海实测重判: 收回 %d 个（≤%dms），降级 %d 个（>%dms 或连不上），"
+                "未量到 %d 个（保留机房判定）"
+                % (promoted, args.cn_max_delay, demoted, args.cn_max_delay, cn_unmeasured))
             if prev:
                 log("  老节点复测: 保留 %d 个（上海 ≤%dms），淘汰 %d 个"
                     % (n_carry_ok, args.carry_max_delay, n_carry_drop))

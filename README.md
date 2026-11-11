@@ -70,10 +70,22 @@ out/flclash-free-nodes.yaml    # 成品订阅
 out/nodes.txt                  # 文本清单
 ```
 
+## 节点源（都在 `scripts/pipeline.py` 顶部）
+
+| 类型 | 源 | 备注 |
+| --- | --- | --- |
+| GitHub | `ermaozi/get_subscribe`、`ermaozi01/free_clash_vpn`、`anaer/Sub`、`ripaojiedian/freenode`、`peasoft/NoMoreWalls`、`mahdibland/ShadowsocksAggregator`、`cysk003/freeSub`、`ts-sf/fly`、`free18/v2ray`、`chengaopan/AutoMergePublicNodes` | 每天自动更新，raw → jsDelivr → ghfast 三条通道兜底 |
+| 每日站 | `freeclashnode.com`、`clashnode.me` | 同一家，互为备用；实测每家约 **500 个节点**（vless/trojan/ss/vmess），是最大的一块增量 |
+| 每日站 | `nodefree.org`、`v2rayshare.com` | 国内网络会被 TLS 重置（本机实测连不上），但 CI 在美国通常能抓；抓不到只打一行 `[skip]` |
+
+实测（2026-11-11）：**14 个源里 12 个可用，去重后候选从 3255 涨到 3918**（+663），其中免费站贡献 395 个。
+
+加源很简单：GitHub 的往 `SOURCES` 里加 `("owner/repo", "分支", "文件路径")`；网站往 `EXTRA_SOURCES` 加 `("名字", "https://.../{Y}/{M}/0-{D}.yaml")`（占位符按北京日期填充）。只支持 Clash YAML 格式；base64/v2ray 链接格式（比如 `Pawdroid/Free-servers`）还需要额外的解析器，暂未接入。
+
 ## 流水线做了什么
 
 1. **复测上一版（老节点优先）**：先读仓库里上一版的 `out/flclash-free-nodes.yaml`，把里面的节点挑前 60 个重新测一遍；**上海 RTT ≤ 150ms 的保留并排在订阅最前面**，超标的直接淘汰，剩下的名额再交给下面的常规流程。这样昨天快今天就未必慢的节点不会因为“今天的源里没有它”而被丢掉，订阅也不会每天大换血。
-2. **抓取**：14 个公开的 Clash 格式免费节点仓库（`scripts/pipeline.py` 里的 `SOURCES`），失效的源自动跳过；
+2. **抓取**：**10 个公开的 GitHub 节点仓库**（`scripts/pipeline.py` 里的 `SOURCES`）+ **4 个每天发布新节点的免费站**（`EXTRA_SOURCES`，按北京日期拼路径，今天没有就退回昨天）。失效的源自动跳过，单个源挂了不影响整体；
 3. **清洗**：剔掉“剩余流量/到期时间”这类信息节点、内网地址、占位 UUID、重复节点；
 4. **内核校验**：用官方 Mihomo 二进制 `-t` 加载，逐个剔除内核判定非法的节点（例如 REALITY short-id 写错的），直到整份配置能通过；
 5. **初筛**：先让每个节点真实请求 `gstatic.com/generate_204`（1 轮，快速筛掉死节点），把几千个候选压到几百个；
