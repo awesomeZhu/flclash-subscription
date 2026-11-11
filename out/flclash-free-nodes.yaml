@@ -1,5 +1,5 @@
 # FLClash / Mihomo 订阅 — 免费公共节点
-# 生成时间: 2026-11-10 03:49 (UTC+0000)   节点: 5
+# 生成时间: 2026-11-11 01:28 (UTC+0000)   节点: 10
 # 数据来源: GitHub 上每日更新的公开免费节点库，合并去重后逐个实测：
 #   ① 谷歌 (www.google.com/generate_204) 与 YouTube (www.youtube.com) 都能真打开；
 #   ② 上海探针（globalping.io）实测“上海 → 节点”RTT ≤ 200ms，节点名里的数字就是上海延迟。
@@ -60,42 +60,57 @@ dns:
       - "https://1.12.12.12/dns-query"
 proxies:
 -
-  name: 🇹🇼 TW-01 · 46ms
   type: vless
-  network: ws
-  server: 59.125.69.22
-  port: 443
-  uuid: c1c04450-bf71-4049-ad0c-9cf6d94d9f1f
-  servername: tse1.mm.bing.net
-  skip-cert-verify: true
-  tls: true
-  udp: true
-  tfo: false
-  client-fingerprint: chrome
-  ws-opts:
-    headers:
-      Host: tse1.mm.bing.net
-    path: /81574b6b-c9d7-44a0-b83d-dad56e8cb530
--
-  name: 🇯🇵 JP-01 · 66ms
-  type: vless
-  network: ws
+  name: 🇯🇵 JP-01 · 50ms
   server: 3.169.9.125
   port: 443
   uuid: 67cd3349-f789-4cbb-8b91-4b6b1654ce7c
-  servername: d2ex4nxd2e01ub.cloudfront.net
-  skip-cert-verify: false
   tls: true
-  udp: true
-  tfo: false
+  servername: d14jyezfrcyf60.cloudfront.net
+  sni: d14jyezfrcyf60.cloudfront.net
+  skip-cert-verify: true
   client-fingerprint: chrome
+  network: ws
   ws-opts:
-    headers:
-      Host: d2ex4nxd2e01ub.cloudfront.net
     path: /
+    headers:
+      Host: d14jyezfrcyf60.cloudfront.net
+-
+  name: 🇹🇼 TW-01 · 60ms
+  password: "exaxgqkKkd0TAMrCxeonWg=="
+  port: 1443
+  server: twmoon1-cdn-route.couldflare-cdn.com
+  tls: true
+  type: http
+  udp: true
+  username: "mrwdfNTD8M79LCukCieldrqZWqs="
+-
+  type: trojan
+  name: 🇨🇦 CA-01 · 62ms
+  server: 172.64.152.234
+  port: 443
+  password: 558e3e91-0ffa-4180-9386-5813fa7c3cb1
+  tls: true
+  servername: pz333.pzmike.dpdns.org
+  sni: pz333.pzmike.dpdns.org
+  skip-cert-verify: true
+  network: ws
+  ws-opts:
+    path: /
+    headers:
+      Host: pz333.pzmike.dpdns.org
+-
+  name: 🇹🇼 TW-02 · 64ms
+  server: forwarded.frnhk.xyz
+  port: 2053
+  type: anytls
+  password: 047e0e0c-1843-4f16-9812-ec2cc94f7a99
+  udp: true
+  sni: my.gosthk.site
+  skip-cert-verify: true
 -
   type: anytls
-  name: 🇹🇼 TW-02 · 83ms
+  name: 🇹🇼 TW-03 · 73ms
   server: sdf65h46wr.df6h451rh.xin
   port: 443
   password: 0324fbc29561
@@ -104,25 +119,45 @@ proxies:
   sni: images.ctfassets.net
   skip-cert-verify: true
 -
-  name: 🇩🇪 DE-01 · 172ms
-  type: vless
-  network: ws
-  server: 178.104.70.11
+  name: 🇹🇼 TW-04 · 73ms
+  server: sdf65h46wr.df6h451rh.xin
   port: 443
-  uuid: 64726966-0000-4000-8000-740000000000
-  servername: parsa-panel-dy55x.railway1385-2a46.workers.dev
-  tls: true
-  ws-opts:
-    headers:
-      Host: parsa-panel-dy55x.railway1385-2a46.workers.dev
-    path: "/fp=firefox"
+  type: anytls
+  password: 0324fbc29561
+  sni: images.ctfassets.net
+  skip-cert-verify: true
 -
-  name: 🇦🇹 AT-01 · 187ms
-  port: 443
-  server: 146.70.244.18
+  name: 🇱🇺 LU-01 · 162ms
+  password: None
+  port: 9443
+  server: 185.221.132.226
   skip-cert-verify: true
   tls: true
   type: http
+-
+  name: 🇷🇴 RO-01 · 185ms
+  port: 9002
+  server: 193.176.84.34
+  skip-cert-verify: true
+  sni: www.bing.com
+  tls: true
+  type: http
+-
+  name: 🇷🇴 RO-02 · 192ms
+  port: 9002
+  server: 193.176.84.31
+  skip-cert-verify: true
+  sni: www.bing.com
+  tls: true
+  type: http
+-
+  name: 🇮🇪 IE-01 · 198ms
+  port: 443
+  server: 34.249.214.108
+  skip-cert-verify: true
+  tls: true
+  type: http
+  udp: true
 proxy-groups:
 -
   name: 🚀 节点选择
@@ -133,12 +168,18 @@ proxy-groups:
     - 🇹🇼 台湾
     - 🇯🇵 日本
     - 🇪🇺 欧洲
+    - 🌍 其他
     - 🎯 全球直连
-    - 🇹🇼 TW-01 · 46ms
-    - 🇯🇵 JP-01 · 66ms
-    - 🇹🇼 TW-02 · 83ms
-    - 🇩🇪 DE-01 · 172ms
-    - 🇦🇹 AT-01 · 187ms
+    - 🇯🇵 JP-01 · 50ms
+    - 🇹🇼 TW-01 · 60ms
+    - 🇨🇦 CA-01 · 62ms
+    - 🇹🇼 TW-02 · 64ms
+    - 🇹🇼 TW-03 · 73ms
+    - 🇹🇼 TW-04 · 73ms
+    - 🇱🇺 LU-01 · 162ms
+    - 🇷🇴 RO-01 · 185ms
+    - 🇷🇴 RO-02 · 192ms
+    - 🇮🇪 IE-01 · 198ms
 -
   name: ♻️ 自动选择
   type: url-test
@@ -147,22 +188,32 @@ proxy-groups:
   tolerance: 50
   lazy: false
   proxies:
-    - 🇹🇼 TW-01 · 46ms
-    - 🇯🇵 JP-01 · 66ms
-    - 🇹🇼 TW-02 · 83ms
-    - 🇩🇪 DE-01 · 172ms
-    - 🇦🇹 AT-01 · 187ms
+    - 🇯🇵 JP-01 · 50ms
+    - 🇹🇼 TW-01 · 60ms
+    - 🇨🇦 CA-01 · 62ms
+    - 🇹🇼 TW-02 · 64ms
+    - 🇹🇼 TW-03 · 73ms
+    - 🇹🇼 TW-04 · 73ms
+    - 🇱🇺 LU-01 · 162ms
+    - 🇷🇴 RO-01 · 185ms
+    - 🇷🇴 RO-02 · 192ms
+    - 🇮🇪 IE-01 · 198ms
 -
   name: 🔯 故障转移
   type: fallback
   url: "https://www.gstatic.com/generate_204"
   interval: 300
   proxies:
-    - 🇹🇼 TW-01 · 46ms
-    - 🇯🇵 JP-01 · 66ms
-    - 🇹🇼 TW-02 · 83ms
-    - 🇩🇪 DE-01 · 172ms
-    - 🇦🇹 AT-01 · 187ms
+    - 🇯🇵 JP-01 · 50ms
+    - 🇹🇼 TW-01 · 60ms
+    - 🇨🇦 CA-01 · 62ms
+    - 🇹🇼 TW-02 · 64ms
+    - 🇹🇼 TW-03 · 73ms
+    - 🇹🇼 TW-04 · 73ms
+    - 🇱🇺 LU-01 · 162ms
+    - 🇷🇴 RO-01 · 185ms
+    - 🇷🇴 RO-02 · 192ms
+    - 🇮🇪 IE-01 · 198ms
 -
   name: 🇹🇼 台湾
   type: url-test
@@ -170,8 +221,10 @@ proxy-groups:
   interval: 300
   tolerance: 50
   proxies:
-    - 🇹🇼 TW-01 · 46ms
-    - 🇹🇼 TW-02 · 83ms
+    - 🇹🇼 TW-01 · 60ms
+    - 🇹🇼 TW-02 · 64ms
+    - 🇹🇼 TW-03 · 73ms
+    - 🇹🇼 TW-04 · 73ms
 -
   name: 🇯🇵 日本
   type: url-test
@@ -179,7 +232,7 @@ proxy-groups:
   interval: 300
   tolerance: 50
   proxies:
-    - 🇯🇵 JP-01 · 66ms
+    - 🇯🇵 JP-01 · 50ms
 -
   name: 🇪🇺 欧洲
   type: url-test
@@ -187,8 +240,18 @@ proxy-groups:
   interval: 300
   tolerance: 50
   proxies:
-    - 🇩🇪 DE-01 · 172ms
-    - 🇦🇹 AT-01 · 187ms
+    - 🇱🇺 LU-01 · 162ms
+    - 🇷🇴 RO-01 · 185ms
+    - 🇷🇴 RO-02 · 192ms
+    - 🇮🇪 IE-01 · 198ms
+-
+  name: 🌍 其他
+  type: url-test
+  url: "https://www.gstatic.com/generate_204"
+  interval: 300
+  tolerance: 50
+  proxies:
+    - 🇨🇦 CA-01 · 62ms
 -
   name: 🎯 全球直连
   type: select
