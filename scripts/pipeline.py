@@ -12,6 +12,9 @@
     5. 上海探针（globalping.io）实测“上海 → 节点”RTT ≤ --cn-max-delay（默认 200ms）
        —— 这一条才决定你在国内用起来快不快，节点名里的数字就是它
 
+另外每次构建会先复测上一版的节点（老节点优先）：上海 RTT ≤ --carry-max-delay
+（默认 100ms）的保留并排在订阅最前面，超标的淘汰，其余名额照常由抓取流程补足。
+
 用法:
     python scripts/pipeline.py                     # 默认输出 out/flclash-free-nodes.yaml
     python scripts/pipeline.py --max-delay 300 --verify-rounds 3      # 放宽延迟 / 多测几轮
@@ -909,6 +912,40 @@ def load_selfhost(path):
         return []
 
 
+def load_previous(path, limit=60):
+    """把上一版订阅里的节点捞出来当“老选手”优先进池。
+
+    为什么要这么做：昨天实测很稳的节点，今天大概率还是稳的；但如果今天的抓取里
+    恰好没有同一个节点（上游轮换很快），原流程就会把它丢掉。先复测老节点、达标的
+    直接留，订阅就不会每天大换血。
+    """
+    if not path or not os.path.isfile(path):
+        return []
+    try:
+        import yaml
+        doc = yaml.safe_load(open(path, encoding="utf-8"))
+    except Exception as e:  # noqa: BLE001
+        log("  [warn] 上一版订阅解析失败（忽略）: %s" % str(e)[:80])
+        return []
+    if not isinstance(doc, dict) or not isinstance(doc.get("proxies"), list):
+        log("  [warn] 上一版订阅里没有 proxies（忽略）")
+        return []
+    out = []
+    for p in doc["proxies"]:               # 文件本身按延迟升序，取前 limit 个就是昨天最好的
+        if not isinstance(p, dict):
+            continue
+        t = str(p.get("type") or "").lower()
+        if t not in ALLOWED_TYPES or not p.get("server") or not p.get("port"):
+            continue
+        q = {k: v for k, v in p.items() if not str(k).startswith("__") and k != "name"}
+        q["__carry"] = 1
+        q["__src"] = "prev"
+        out.append(q)
+        if len(out) >= limit:
+            break
+    return out
+
+
 def build(nodes, geo, out_path, workers_note, selfhost=None, public_path=None):
     selfhost = selfhost or []
     items = []
@@ -917,9 +954,11 @@ def build(nodes, geo, out_path, workers_note, selfhost=None, public_path=None):
         d = nodes_delay[nid]
         g = geo.get(str(p.get("server")), {})
         items.append({"node": p, "cc": g.get("cc", ""), "delay": d["delay"], "hits": d["hits"],
-                      "tier": p.get("__tier", "full")})
-    # 完整通过的排前面，其余按下发顺序垫后
-    items.sort(key=lambda x: (TIER_RANK.get(x["tier"], 3), x["delay"], -x["hits"]))
+                      "tier": p.get("__tier", "full"),
+                      "carry": bool(p.get("__carry"))})
+    # 老选手（上一版保留的）排最前，然后才是完整通过的，其余垫后
+    items.sort(key=lambda x: (0 if x["carry"] else 1,
+                              TIER_RANK.get(x["tier"], 3), x["delay"], -x["hits"]))
 
     counters, proxies = {}, []
     for it in items:
@@ -973,6 +1012,11 @@ def build(nodes, geo, out_path, workers_note, selfhost=None, public_path=None):
             # 只有在“没启用上海探针”时，亚太放宽才是真正的判定依据，才值得写进头部
             lines.insert(len(lines) - 1, "#   港澳台日韩新单独放宽到 ≤ %dms（机房到节点的延迟，你在国内用会更快）"
                          % DELAY_GATE_ASIA)
+        n_carry = sum(1 for it in items if it["carry"])
+        if n_carry:
+            lines.insert(len(lines) - 1,
+                         "#   其中 %d 个是上一版保留的老节点（复测后上海 RTT ≤ %dms 才留，排在最前）"
+                         % (n_carry, CARRY_GATE))
         if sh:
             lines.append("# ⚠️ 本文件含自建节点密钥，请勿公开（仅用于私有 Gist）")
         lines.append("")
@@ -1069,6 +1113,7 @@ nodes_delay = {}
 DELAY_GATE = 200      # 机房延迟门槛（ms），由 main() 按 --max-delay 覆盖，仅用于写进配置注释
 DELAY_GATE_ASIA = 0   # 亚太单独门槛，由 main() 按 --max-delay-asia 覆盖
 DELAY_GATE_CN = 0     # 上海探针门槛，由 main() 按 --cn-max-delay 覆盖（>0 表示用了上海探针）
+CARRY_GATE = 100      # 老选手（上一版保留）的上海门槛，由 main() 按 --carry-max-delay 覆盖
 
 # mihomo 校验 GEOSITE/GEOIP 规则时需要地理库；默认会自己去 GitHub 下载，
 # 一旦下载失败整个配置校验就失败 —— 所以这里先带镜像把它预置好。
@@ -1173,6 +1218,12 @@ def main():
                     help="本次最多量多少个节点（globalping 免费额度 250 次/小时），默认 150")
     ap.add_argument("--cn-workers", type=int, default=4,
                     help="并发创建的探针测量数量，默认 4")
+    ap.add_argument("--no-carry", action="store_true",
+                    help="不优先复测上一版订阅里的节点（默认会先跑一遍老节点）")
+    ap.add_argument("--carry-max-delay", type=int, default=100,
+                    help="老节点的上海 RTT 门槛（毫秒），达标才留下，默认 100")
+    ap.add_argument("--carry-limit", type=int, default=60,
+                    help="最多复测多少个老节点（按上一版的延迟从好到差取），默认 60")
     ap.add_argument("--verify-rounds", type=int, default=2,
                     help="严格验证时每个站点的探测轮数，默认 2")
     ap.add_argument("--verify-timeout", type=int, default=5000,
@@ -1192,6 +1243,7 @@ def main():
     ap.add_argument("--public-out", default="",
                     help="另存一份不含自建节点的配置，供公开仓库提交")
     args = ap.parse_args()
+    global nodes_delay, DELAY_GATE, DELAY_GATE_ASIA, DELAY_GATE_CN, CARRY_GATE
 
     t_all = time.time()
     os.makedirs(CACHE, exist_ok=True)
@@ -1203,7 +1255,21 @@ def main():
     log("参数: workers=%d rounds=%d timeout=%dms max_delay=%dms 输出=%s" % (
         args.workers, args.rounds, args.timeout, args.max_delay, args.out))
 
-    log("[1/8] 抓取节点源")
+    # 第 1 步：先把上一版的节点捞出来当“老选手”。它们只在确实还快（上海 ≤ carry 门槛）时才留，
+    # 不合格的直接丢掉，剩下的名额交给下面的常规流程。
+    prev_path = args.public_out or args.out
+    prev = [] if args.no_carry else load_previous(prev_path, args.carry_limit)
+    CARRY_GATE = args.carry_max_delay
+    log("[1/9] 复测上一版订阅（老节点优先）")
+    if args.no_carry:
+        log("  已用 --no-carry 关闭")
+    elif prev:
+        log("  从 %s 读到 %d 个老节点，复测后上海 RTT ≤%dms 才保留"
+            % (os.path.basename(prev_path), len(prev), args.carry_max_delay))
+    else:
+        log("  没有上一版订阅（首次运行或文件不存在），跳过")
+
+    log("[2/9] 抓取节点源")
     ok, failed = fetch_sources()
     if not ok:
         log("没有可用节点源，退出。失败原因：")
@@ -1212,11 +1278,17 @@ def main():
         annotate("所有节点源都抓取失败：%s" % ("; ".join("%s: %s" % (r, e) for r, e in failed[:4])))
         return 1
 
-    log("[2/8] 解析 / 清洗 / 去重")
+    log("[3/9] 解析 / 清洗 / 去重")
     t_parse = time.time()
     sys.path.insert(0, ROOT)
     import yaml  # 延迟导入，便于提示缺包
     merged, seen = [], set()
+    for p in prev:                    # 老节点先占位：抓取里遇到同款就跳过，保证它们优先
+        k = dedupe_key(p)
+        if k in seen:
+            continue
+        seen.add(k)
+        merged.append(p)
     for fn in sorted(glob.glob(os.path.join(CACHE, "*.yaml"))):
         src = os.path.basename(fn)
         try:
@@ -1244,7 +1316,7 @@ def main():
         merged = merged[:args.max_candidates]
         log("  [调试] 只取前 %d 个候选参与后续测速" % len(merged))
 
-    log("[3/8] 内核校验")
+    log("[4/9] 内核校验")
     t_val = time.time()
     exe = mihomo_path()
     cfg = os.path.join(work, "validate.yaml")
@@ -1257,7 +1329,7 @@ def main():
     https_url = "https://www.gstatic.com/generate_204"
     fallback_url = "http://cp.cloudflare.com/generate_204"
 
-    log("[4/8] 初筛：真实请求（%d 线程，1 轮）" % args.workers)
+    log("[5/9] 初筛：真实请求（%d 线程，1 轮）" % args.workers)
     quick = {}
     for url in (http_url, fallback_url, https_url):
         quick = measure(exe, merged, work, args.workers, 1, args.timeout, url)
@@ -1270,7 +1342,7 @@ def main():
         return 1
     candidates = [p for p in merged if p["__id"] in quick]
 
-    log("[5/8] 严格验证：谷歌 + YouTube 可达性（%d 轮，机房延迟门槛 %dms）" %
+    log("[6/9] 严格验证：谷歌 + YouTube 可达性（%d 轮，机房延迟门槛 %dms）" %
         (args.verify_rounds, args.max_delay))
     min_hits = args.min_hits or args.verify_rounds
     min_hits = max(1, min(min_hits, args.verify_rounds))
@@ -1285,7 +1357,7 @@ def main():
         log("  严格验证无法进行：%s" % vstat["fatal"])
         annotate("严格验证无法进行：%s" % vstat["fatal"])
         return 1
-    log("[6/8] 查询归属地（先查，因为亚太门槛和探针挑样都要看国家）")
+    log("[7/9] 查询归属地（先查，因为亚太门槛和探针挑样都要看国家）")
     t_geo = time.time()
     geo = geolocate([str(p.get("server")) for p in candidates])
     log("  已知归属: %d / %d（用时 %.1fs）" % (sum(1 for v in geo.values() if v["cc"]), len(geo),
@@ -1308,7 +1380,7 @@ def main():
     # ---- 第 7 步：上海探针实测，用“上海 -> 节点”的延迟重判 ----
     cn_hit, cn_miss = 0, 0
     if args.cn_check:
-        log("[7/8] 上海探针实测（globalping.io，%s）" % args.cn_city)
+        log("[8/9] 上海探针实测（globalping.io，%s）" % args.cn_city)
         cn_data = cn_probe_nodes(candidates, geo, [{"city": args.cn_city, "country": "CN"}],
                                  args.cn_workers, 90, args.cn_max_nodes)
         hit = sorted(v[0] for v in cn_data.values() if v[0])
@@ -1331,29 +1403,40 @@ def main():
             log("  [warn] 探针结果不可用（测了 %d 个：有数据 %d、连不上 %d、限流/额度 %d），"
                 "本次退回按机房延迟判断" % (measured, len(hit), unreachable, infra))
         else:
+            n_carry_ok = n_carry_drop = 0
             for p in candidates:
                 info = verified.get(p["__id"])
                 if not info:
                     continue
                 ms = cn_data.get((str(p.get("server")), int(p.get("port") or 443)), (None, ""))[0]
+                limit_ms = args.carry_max_delay if p.get("__carry") else args.cn_max_delay
                 if not ms:
                     cn_miss += 1
                     # 上海连不上/没数据：不能证明你那边能用，降级（不占主池名额）
                     if info["tier"] == "full":
                         info["tier"] = "slow"
+                    if p.get("__carry"):
+                        n_carry_drop += 1
                     continue
                 cn_hit += 1
                 info["cn"] = ms
                 info["delay"] = ms                 # 名字、排序、门槛全部改用上海实测
-                if ms <= args.cn_max_delay:
+                if ms <= limit_ms:
                     if info["tier"] == "slow":
                         info["tier"] = "full"
                         promoted += 1
+                    if p.get("__carry"):
+                        n_carry_ok += 1
                 elif info["tier"] == "full":
                     info["tier"] = "slow"          # 机房看着快、上海其实慢 -> 降级
                     demoted += 1
+                    if p.get("__carry"):
+                        n_carry_drop += 1
             log("  按上海实测重判: 收回 %d 个（≤%dms），降级 %d 个（>%dms 或连不上），无数据 %d 个"
                 % (promoted, args.cn_max_delay, demoted, args.cn_max_delay, cn_miss))
+            if prev:
+                log("  老节点复测: 保留 %d 个（上海 ≤%dms），淘汰 %d 个"
+                    % (n_carry_ok, args.carry_max_delay, n_carry_drop))
         DELAY_GATE_CN = args.cn_max_delay if cn_hit else 0
 
     n_full = sum(1 for v in verified.values() if v["tier"] == "full")
@@ -1423,7 +1506,7 @@ def main():
                  % (len(alive), args.max_delay, args.min_nodes))
         return 1
 
-    log("[8/8] 生成配置并校验")
+    log("[9/9] 生成配置并校验")
     sh_nodes = load_selfhost(args.selfhost)
     if sh_nodes:
         log("  已载入自建节点 %d 个: %s" % (len(sh_nodes), ", ".join(p["name"] for p in sh_nodes)))

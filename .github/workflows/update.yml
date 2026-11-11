@@ -66,9 +66,12 @@ jobs:
           fi
           # --max-delay 200      : 机房（美国）测的“节点能不能出去”：谷歌/YouTube 双通 + 机房延迟上限
           # --cn-max-delay 200   : 上海探针（globalping）实测“上海 -> 节点”RTT 上限，这才是下发依据
+          # --cn-max-nodes 200   : 本次最多量 200 个（含上一版老节点），探针额度 250/小时
+          # --carry-max-delay 100: 上一版老节点复测，上海 RTT ≤100ms 才保留并排最前
           # --max-delay-asia 400 : 仅在探针拿不到数据时兜底，港澳台日韩新放宽
           python -u scripts/pipeline.py --workers 128 --rounds 2 --timeout 3000 \
-            --max-delay 200 --max-delay-asia 400 --cn-max-delay 200 $OUT_ARGS 2>&1 | tee pipeline.log
+            --max-delay 200 --max-delay-asia 400 --cn-max-delay 200 --cn-max-nodes 200 \
+            --carry-max-delay 100 $OUT_ARGS 2>&1 | tee pipeline.log
 
       # 合并版含密钥，只推到私有 Gist；公开仓库里永远只有免费节点
       - name: 发布合并订阅到私有 Gist（可选）
