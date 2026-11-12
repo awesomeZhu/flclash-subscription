@@ -1279,6 +1279,8 @@ def main():
                     help="并发创建的探针测量数量，默认 4")
     ap.add_argument("--allow-degraded", action="store_true",
                     help="上海探针完全不可用时，仍然按机房延迟生成（默认是保留上一版、不下发）")
+    ap.add_argument("--keep-unmeasured", action="store_true",
+                    help="探针预算之外没量到的节点也保留（默认淘汰，保证下发的都过上海实测）")
     ap.add_argument("--no-carry", action="store_true",
                     help="不优先复测上一版订阅里的节点（默认会先跑一遍老节点）")
     ap.add_argument("--carry-max-delay", type=int, default=150,
@@ -1439,60 +1441,68 @@ def main():
         log("  亚太放宽（≤%dms）: 收回 %d 个港澳台日韩新节点" % (args.max_delay_asia, promoted))
 
     # ---- 第 7 步：上海探针实测，用“上海 -> 节点”的延迟重判 ----
-    cn_hit, cn_miss = 0, 0
+    cn_hit, cn_miss, cn_unmeasured = 0, 0, 0
     if args.cn_check:
         log("[8/9] 上海探针实测（globalping.io，%s）" % args.cn_city)
-        cn_data = cn_probe_nodes(candidates, geo, [{"city": args.cn_city, "country": "CN"}],
-                                 args.cn_workers, 90, args.cn_max_nodes)
-        hit = sorted(v[0] for v in cn_data.values() if v[0])
-        if not hit and not args.allow_degraded:
-            # globalping 免费额度 250 次/小时、按出口 IP 算，而 GitHub runner 的出口是共享的，
-            # 很可能被别人用光（实测就发生过：一整轮一个数据都没拿到）。
+        from collections import Counter as _Counter
+
+        def _assess(data):
+            """这轮探针结果够不够用：只看“确定性结论”（有 RTT，或明确连不上），
+            额度用尽/限流不算。够不够用和候选数量挂钩，太少就没法下结论。"""
+            hits = sorted(v[0] for v in data.values() if v[0])
+            why = _Counter(v[1] for v in data.values() if not v[0])
+            unreach = why.get("连不上/无回包", 0)
+            infra = why.get("额度用尽", 0) + why.get("限流 429", 0)
+            definite = len(hits) + unreach
+            need = max(5, int(len(candidates) * 0.1))
+            return hits, unreach, infra, definite, definite >= min(need, len(candidates))
+
+        def _run():
+            return cn_probe_nodes(candidates, geo, [{"city": args.cn_city, "country": "CN"}],
+                                  args.cn_workers, 90, args.cn_max_nodes)
+
+        cn_data = _run()
+        hits, unreach, infra, definite, ok = _assess(cn_data)
+        if not ok and not args.allow_degraded:
+            # globalping 免费额度 250 次/小时、按出口 IP 算，GitHub runner 的出口是共享的，
+            # 实测出现过“整轮一个数据都没有”和“只量到几个就没额度了”两种。额度快刷新就等一下。
             wait = int(_gp_budget.get("reset", 3600))
             if wait <= 200:
-                log("  一个数据都没拿到（额度被占），%ds 后额度刷新，等一会儿重试一次" % wait)
+                log("  探针结果不足（确定性结论 %d 个），%ds 后额度刷新，等一会儿重试一次"
+                    % (definite, wait))
                 time.sleep(wait + 5)
                 _gp_budget["remaining"] = 999
-                cn_data = cn_probe_nodes(candidates, geo, [{"city": args.cn_city, "country": "CN"}],
-                                         args.cn_workers, 90, args.cn_max_nodes)
-                hit = sorted(v[0] for v in cn_data.values() if v[0])
+                cn_data = _run()
+                hits, unreach, infra, definite, ok = _assess(cn_data)
             else:
-                log("  一个数据都没拿到，且额度要 %d 分钟才刷新，本次不重试" % (wait // 60))
-        if hit:
-            log("  上海 -> 节点 RTT: 最快 %dms / 中位 %dms / 最慢 %dms（有数据 %d / %d）"
-                % (hit[0], hit[len(hit) // 2], hit[-1], len(hit), len(cn_data)))
-        else:
-            log("  [warn] 探针始终没有数据")
+                log("  探针结果不足，且额度要 %d 分钟才刷新，本次不重试" % (wait // 60))
+        if hits:
+            log("  上海 -> 节点 RTT: 最快 %dms / 中位 %dms / 最慢 %dms"
+                "（确定性结论 %d 个：有 RTT %d、连不上 %d；额度不足 %d）"
+                % (hits[0], hits[len(hits) // 2], hits[-1], definite, len(hits), unreach, infra))
+        if not ok:
             if not args.allow_degraded:
-                # 没有上海实测就没法保证“国内好用”，宁可保留上一版，也不拿 100 多个美国节点凑数
-                log("  判定为探针不可用，保留上一版订阅、本次不下发（要强行降级加 --allow-degraded）")
-                annotate("上海探针没拿到任何数据（globalping 免费 250 次/小时，GitHub runner 的出口 IP 是共享的），"
-                         "为避免下发一批只有机房测过的节点，本次保留上一版订阅。"
-                         "如果连续几天都这样，可在工作流里加 --allow-degraded 允许降级生成。")
+                # 没有足够的上海实测，就没法保证“国内好用”；宁可保留上一版订阅，
+                # 也不拿一百多个只在机房测过的美国节点凑数
+                log("  探针不可用，保留上一版订阅、本次不下发（要强行降级加 --allow-degraded）")
+                annotate("上海探针拿不到足够数据（globalping 免费 250 次/小时，GitHub runner 出口 IP 是共享的；"
+                         "本轮确定性结论只有 %d 个）。为避免下发一批只有机房测过的节点，本次保留上一版订阅。"
+                         "过一小时后点一次 Run workflow 重跑通常就好；连续多天如此可加 --allow-degraded。"
+                         % definite)
                 return 1
             log("  [降级] --allow-degraded 已开启，按机房延迟生成")
+
         promoted = demoted = 0
-        # 判断这轮探针结果能不能信：区分「探针本身出问题（限流/额度）」和
-        # 「探针正常工作、只是这些节点从上海连不上（这本身就是有效信号）」
-        from collections import Counter as _Counter
-        reasons = _Counter(v[1] for v in cn_data.values() if not v[0])
-        unreachable = reasons.get("连不上/无回包", 0)
-        infra = reasons.get("额度用尽", 0) + reasons.get("限流 429", 0)
-        measured = len(cn_data)
-        reliable = bool(measured) and (
-            unreachable >= max(3, measured * 0.5) or len(hit) >= max(3, len(candidates) * 0.3))
-        if not reliable:
-            log("  [warn] 探针结果不可用（测了 %d 个：有数据 %d、连不上 %d、限流/额度 %d），"
-                "本次退回按机房延迟判断" % (measured, len(hit), unreachable, infra))
-        else:
-            n_carry_ok = n_carry_drop = cn_unmeasured = 0
+        if ok:
             for p in candidates:
                 info = verified.get(p["__id"])
                 if not info:
                     continue
                 key = (str(p.get("server")), int(p.get("port") or 443))
                 if key not in cn_data:
-                    # 预算/额度不够，这个节点根本没量到：不能当成“连不上”，保持机房判定
+                    # 预算/额度不够，这个节点根本没量到：默认淘汰（保证下发的每个节点都经过上海实测）
+                    if not args.keep_unmeasured and info["tier"] == "full":
+                        info["tier"] = "slow"
                     cn_unmeasured += 1
                     continue
                 ms = cn_data[key][0]
@@ -1502,8 +1512,6 @@ def main():
                     # 量了但连不上/无回包：上海用不了，降级（不占主池名额）
                     if info["tier"] == "full":
                         info["tier"] = "slow"
-                    if p.get("__carry"):
-                        n_carry_drop += 1
                     continue
                 cn_hit += 1
                 info["cn"] = ms
@@ -1512,19 +1520,17 @@ def main():
                     if info["tier"] == "slow":
                         info["tier"] = "full"
                         promoted += 1
-                    if p.get("__carry"):
-                        n_carry_ok += 1
                 elif info["tier"] == "full":
                     info["tier"] = "slow"          # 机房看着快、上海其实慢 -> 降级
                     demoted += 1
-                    if p.get("__carry"):
-                        n_carry_drop += 1
             log("  按上海实测重判: 收回 %d 个（≤%dms），降级 %d 个（>%dms 或连不上），"
-                "未量到 %d 个（保留机房判定）"
-                % (promoted, args.cn_max_delay, demoted, args.cn_max_delay, cn_unmeasured))
+                "未量到 %d 个（%s）"
+                % (promoted, args.cn_max_delay, demoted, args.cn_max_delay, cn_unmeasured,
+                   "保留机房判定" if args.keep_unmeasured else "已淘汰"))
             if prev:
-                log("  老节点复测: 保留 %d 个（上海 ≤%dms），淘汰 %d 个"
-                    % (n_carry_ok, args.carry_max_delay, n_carry_drop))
+                n_carry_ok = sum(1 for p in candidates
+                                 if p.get("__carry") and verified.get(p["__id"], {}).get("tier") == "full")
+                log("  老节点复测: 保留 %d 个（上海 ≤%dms）" % (n_carry_ok, args.carry_max_delay))
         DELAY_GATE_CN = args.cn_max_delay if cn_hit else 0
 
     n_full = sum(1 for v in verified.values() if v["tier"] == "full")
