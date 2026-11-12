@@ -730,7 +730,7 @@ GP_UA = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) flclash-pipeline"}
 GP_CITIES = [{"city": "Shanghai", "country": "CN"},
              {"city": "Hangzhou", "country": "CN"},
              {"city": "Nanjing", "country": "CN"}]
-_gp_budget = {"remaining": 999}
+_gp_budget = {"remaining": 999, "reset": 3600}
 
 
 def _gp_call(url, payload=None, timeout=45):
@@ -801,12 +801,17 @@ def cn_probe(target, port, city, timeout_s=90):
         except urllib.error.HTTPError as e:
             if e.code == 429:
                 _gp_budget["remaining"] = 0
+                try:
+                    _gp_budget["reset"] = int(e.headers.get("X-RateLimit-Reset", 3600))
+                except Exception:  # noqa: BLE001
+                    pass
                 return None, "限流 429"
             continue
         except Exception:  # noqa: BLE001
             continue
         try:
             _gp_budget["remaining"] = int(hdrs.get("X-RateLimit-Remaining", 999))
+            _gp_budget["reset"] = int(hdrs.get("X-RateLimit-Reset", 3600))
         except Exception:  # noqa: BLE001
             pass
         mid = j.get("id")
@@ -1272,6 +1277,8 @@ def main():
                     help="本次最多量多少个节点（globalping 免费额度 250 次/小时），默认 150")
     ap.add_argument("--cn-workers", type=int, default=4,
                     help="并发创建的探针测量数量，默认 4")
+    ap.add_argument("--allow-degraded", action="store_true",
+                    help="上海探针完全不可用时，仍然按机房延迟生成（默认是保留上一版、不下发）")
     ap.add_argument("--no-carry", action="store_true",
                     help="不优先复测上一版订阅里的节点（默认会先跑一遍老节点）")
     ap.add_argument("--carry-max-delay", type=int, default=150,
@@ -1438,11 +1445,32 @@ def main():
         cn_data = cn_probe_nodes(candidates, geo, [{"city": args.cn_city, "country": "CN"}],
                                  args.cn_workers, 90, args.cn_max_nodes)
         hit = sorted(v[0] for v in cn_data.values() if v[0])
+        if not hit and not args.allow_degraded:
+            # globalping 免费额度 250 次/小时、按出口 IP 算，而 GitHub runner 的出口是共享的，
+            # 很可能被别人用光（实测就发生过：一整轮一个数据都没拿到）。
+            wait = int(_gp_budget.get("reset", 3600))
+            if wait <= 200:
+                log("  一个数据都没拿到（额度被占），%ds 后额度刷新，等一会儿重试一次" % wait)
+                time.sleep(wait + 5)
+                _gp_budget["remaining"] = 999
+                cn_data = cn_probe_nodes(candidates, geo, [{"city": args.cn_city, "country": "CN"}],
+                                         args.cn_workers, 90, args.cn_max_nodes)
+                hit = sorted(v[0] for v in cn_data.values() if v[0])
+            else:
+                log("  一个数据都没拿到，且额度要 %d 分钟才刷新，本次不重试" % (wait // 60))
         if hit:
             log("  上海 -> 节点 RTT: 最快 %dms / 中位 %dms / 最慢 %dms（有数据 %d / %d）"
                 % (hit[0], hit[len(hit) // 2], hit[-1], len(hit), len(cn_data)))
         else:
-            log("  [warn] 探针一个数据都没拿到（限流或网络问题），退回按机房延迟判断")
+            log("  [warn] 探针始终没有数据")
+            if not args.allow_degraded:
+                # 没有上海实测就没法保证“国内好用”，宁可保留上一版，也不拿 100 多个美国节点凑数
+                log("  判定为探针不可用，保留上一版订阅、本次不下发（要强行降级加 --allow-degraded）")
+                annotate("上海探针没拿到任何数据（globalping 免费 250 次/小时，GitHub runner 的出口 IP 是共享的），"
+                         "为避免下发一批只有机房测过的节点，本次保留上一版订阅。"
+                         "如果连续几天都这样，可在工作流里加 --allow-degraded 允许降级生成。")
+                return 1
+            log("  [降级] --allow-degraded 已开启，按机房延迟生成")
         promoted = demoted = 0
         # 判断这轮探针结果能不能信：区分「探针本身出问题（限流/额度）」和
         # 「探针正常工作、只是这些节点从上海连不上（这本身就是有效信号）」
