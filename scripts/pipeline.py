@@ -849,9 +849,13 @@ def _round_robin_by_cc(nodes, geo):
 def cn_probe_nodes(nodes, geo, cities, workers, timeout_s, budget):
     """并发从国内探针量每个节点：返回 {(server, port): (ms|null, 说明)}"""
     _gp_budget["remaining"] = budget
-    todo = _round_robin_by_cc(nodes, geo)[:budget]
+    # 先量“老节点”（上一版保留的，本来就值得留），剩下预算再按国家轮流分配给新节点
+    carry = [p for p in nodes if p.get("__carry")]
+    rest = [p for p in nodes if not p.get("__carry")]
+    todo = carry[:budget] + _round_robin_by_cc(rest, geo)[:max(0, budget - len(carry[:budget]))]
     if len(todo) < len(nodes):
-        log("  预算 %d 个，本次只量 %d 个（按国家轮流挑）" % (budget, len(todo)))
+        log("  预算 %d 个：先量老节点 %d 个，再按国家轮流挑 %d 个新节点（共 %d 个候选）"
+            % (budget, len(carry[:budget]), len(todo) - len(carry[:budget]), len(nodes)))
     out, done = {}, 0
     t0 = time.time()
 
@@ -1447,15 +1451,19 @@ def main():
         from collections import Counter as _Counter
 
         def _assess(data):
-            """这轮探针结果够不够用：只看“确定性结论”（有 RTT，或明确连不上），
-            额度用尽/限流不算。够不够用和候选数量挂钩，太少就没法下结论。"""
+            """这轮探针结果够不够用。判断依据是「额度有没有中途用光」，而不是和候选总数比：
+              - 确定性结论（有 RTT 或明确连不上）至少 5 个（候选不足 5 个时按候选数）；
+              - 因为额度用尽而没量成的比例不能太高（>20% 就说明本轮被限流了）。
+            这样即使为了省额度只量 80 个，只要这 80 个都量成了，结论依然可信。"""
             hits = sorted(v[0] for v in data.values() if v[0])
             why = _Counter(v[1] for v in data.values() if not v[0])
             unreach = why.get("连不上/无回包", 0)
             infra = why.get("额度用尽", 0) + why.get("限流 429", 0)
             definite = len(hits) + unreach
-            need = max(5, int(len(candidates) * 0.1))
-            return hits, unreach, infra, definite, definite >= min(need, len(candidates))
+            attempts = len(data)
+            ok = (attempts > 0 and definite >= min(5, len(candidates))
+                  and infra <= max(2, attempts * 0.2))
+            return hits, unreach, infra, definite, ok
 
         def _run():
             return cn_probe_nodes(candidates, geo, [{"city": args.cn_city, "country": "CN"}],
