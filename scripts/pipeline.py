@@ -945,15 +945,17 @@ def _round_robin_by_cc(nodes, geo):
 
 
 def cn_probe_nodes(nodes, geo, cities, workers, timeout_s, budget):
-    """并发从国内探针量每个节点：返回 {(server, port): (ms|null, 说明)}"""
+    """并发从国内探针量每个节点：返回 {(server, port): (ms|null, 说明)}
+
+    顺序：老节点 → 调用方给的顺序（main 已按「亚太 > 加拿大 > 美国 > 其他」排好）。
+    额度不够时，后面那些（比如美国）自然被截掉，保证优先级高的先测。"""
     _gp_budget["remaining"] = budget
-    # 先量“老节点”（上一版保留的，本来就值得留），剩下预算再按国家轮流分配给新节点
     carry = [p for p in nodes if p.get("__carry")]
     rest = [p for p in nodes if not p.get("__carry")]
-    todo = carry[:budget] + _round_robin_by_cc(rest, geo)[:max(0, budget - len(carry[:budget]))]
+    todo = (carry + rest)[:budget]
     if len(todo) < len(nodes):
-        log("  预算 %d 个：先量老节点 %d 个，再按国家轮流挑 %d 个新节点（共 %d 个候选）"
-            % (budget, len(carry[:budget]), len(todo) - len(carry[:budget]), len(nodes)))
+        log("  预算 %d 个：先量老节点 %d 个，按优先级截取到 %d 个（共 %d 个候选）"
+            % (budget, len(carry), len(todo), len(nodes)))
     out, done = {}, 0
     t0 = time.time()
 
@@ -1026,6 +1028,8 @@ TIER_TAG = {"full": "", "slow": " ·高延迟", "gonly": " ·仅谷歌"}
 ASIA = {"HK", "TW", "JP", "SG", "KR", "MO"}
 # 只保留这五个地区（用户明确要求）：日本、新加坡、韩国、台湾、香港
 ASIA_STRICT = {"HK", "TW", "JP", "SG", "KR"}
+# 额度不够时的优先级：亚太 0 > 加拿大 1 > 美国 2 > 其他 3
+REGION_PRIORITY = {"HK": 0, "TW": 0, "JP": 0, "SG": 0, "KR": 0, "CA": 1, "US": 2}
 
 
 def region_of(cc):
@@ -1378,9 +1382,10 @@ def main():
                     help="国内探针城市，默认 Shanghai（globalping 的国内探针城市）")
     ap.add_argument("--cn-max-delay", type=int, default=120,
                     help="上海 -> 节点 的 RTT 门槛（毫秒），超过就下发时丢弃，默认 120")
-    ap.add_argument("--cn-region", default="asia", choices=["asia", "auto", "all"],
-                    help="只测/只保留哪些地区：asia=日/新/韩/台/港（默认，其余全部剔除）；"
-                         "auto=再加澳门和归属未知；all=不筛选")
+    ap.add_argument("--cn-region", default="asia_na",
+                    choices=["asia_na", "asia", "auto", "all"],
+                    help="只测/只保留哪些地区：asia_na=日/新/韩/台/港+美/加（默认）；asia=只亚太；"
+                         "auto=亚太+澳门+未知；all=不筛选。超出预算时按 亚太>加拿大>美国 优先")
     ap.add_argument("--cn-max-nodes", type=int, default=150,
                     help="本次最多量多少个节点（globalping 免费额度 250 次/小时），默认 150")
     ap.add_argument("--cn-workers", type=int, default=4,
@@ -1569,16 +1574,31 @@ def main():
                   and infra <= max(2, attempts * 0.2))
             return hits, unreach, infra, definite, ok
 
-        # 地区筛选：只留 JP/SG/KR/TW/HK（用户要求），其余地区直接剔除，不浪费探针额度。
-        # 这样这一批节点能被“全量测完”（亚太候选约占 25%，额度足够）。
+        # 地区筛选：默认只留 日/新/韩/台/港 + 美/加，其余直接剔除，不浪费探针额度。
+        # 额度不够时按「亚太 > 加拿大 > 美国 > 其他」的顺序优先测（用户要求：超容量优先加拿大）。
         probe_pool = candidates
-        if args.cn_region in ("auto", "asia"):
-            keep = ASIA_STRICT if args.cn_region == "asia" else (ASIA_STRICT | {"MO", "??"})
+        if args.cn_region in ("asia_na", "asia", "auto"):
+            if args.cn_region == "asia_na":
+                keep = ASIA_STRICT | {"CA", "US"}
+            elif args.cn_region == "asia":
+                keep = ASIA_STRICT
+            else:
+                keep = ASIA_STRICT | {"MO", "??"}
             probe_pool = [p for p in candidates
                           if (geo.get(str(p.get("server")), {}).get("cc") or "??") in keep]
+            # 优先级：亚太 0 > 加拿大 1 > 美国 2 > 其他 3（稳定排序，组内保持原顺序）
+            probe_pool.sort(key=lambda p: REGION_PRIORITY.get(
+                geo.get(str(p.get("server")), {}).get("cc") or "??", 3))
             skipped = len(candidates) - len(probe_pool)
-            log("  地区筛选（%s）：只保留 %s；剔除 %d 个其他地区节点，本次全部测 %d 个"
-                % (args.cn_region, "/".join(sorted(keep)), skipped, len(probe_pool)))
+            mix = {}
+            for p in probe_pool:
+                cc = geo.get(str(p.get("server")), {}).get("cc") or "??"
+                mix[cc] = mix.get(cc, 0) + 1
+            top = ",".join("%s:%d" % (k, v) for k, v in sorted(mix.items(),
+                                                               key=lambda kv: -kv[1])[:8])
+            log("  地区筛选（%s）：剔除 %d 个其他地区，待测 %d 个（%s）；"
+                "预算 %d，超出时按 亚太 > 加拿大 > 美国 优先"
+                % (args.cn_region, skipped, len(probe_pool), top, args.cn_max_nodes))
 
         def _run():
             return cn_probe_nodes(probe_pool, geo, [{"city": args.cn_city, "country": "CN"}],
