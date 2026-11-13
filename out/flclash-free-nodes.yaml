@@ -1,9 +1,9 @@
 # FLClash / Mihomo 订阅 — 免费公共节点
-# 生成时间: 2026-11-13 06:23 (UTC+0000)   节点: 9
+# 生成时间: 2026-11-13 09:20 (UTC+0000)   节点: 9
 # 数据来源: GitHub 上每日更新的公开免费节点库，合并去重后逐个实测：
 #   ① 谷歌 (www.google.com/generate_204) 与 YouTube (www.youtube.com) 都能真打开；
-#   ② 上海探针（globalping.io）实测“上海 → 节点”RTT ≤ 200ms，节点名里的数字就是上海延迟。
-#   其中 2 个是上一版保留的老节点（复测后上海 RTT ≤ 150ms 才留，排在最前）
+#   ② 上海探针（globalping.io）实测“上海 → 节点”RTT ≤ 120ms，节点名里的数字就是上海延迟。
+#   其中 1 个是上一版保留的老节点（复测后上海 RTT ≤ 150ms 才留，排在最前）
 # 本文件由 GitHub Actions 自动生成，请勿手工修改
 
 mixed-port: 7890
@@ -61,16 +61,6 @@ dns:
       - "https://1.12.12.12/dns-query"
 proxies:
 -
-  type: anytls
-  server: sdf65h46wr.df6h451rh.xin
-  port: 443
-  password: 0324fbc29561
-  tls: true
-  servername: images.ctfassets.net
-  sni: images.ctfassets.net
-  skip-cert-verify: true
-  name: 🇹🇼 TW-01 · 40ms
--
   password: "exaxgqkKkd0TAMrCxeonWg=="
   port: 1443
   server: twmoon1-cdn-route.couldflare-cdn.com
@@ -78,67 +68,128 @@ proxies:
   type: http
   udp: true
   username: "mrwdfNTD8M79LCukCieldrqZWqs="
-  name: 🇹🇼 TW-02 · 71ms
+  name: 🇹🇼 TW-01 · 70ms
 -
-  name: 🇷🇴 RO-01 · 20ms
-  port: 9002
-  server: 193.176.84.35
+  auth: abedf59203ff9523
+  name: 🇯🇵 JP-01 · 29ms
+  obfs: salamander
+  obfs-password: ce8a8b39835f0ce5340cf548892e8e71
+  password: abedf59203ff9523
+  port: 17826
+  ports: "17826,20000-40000"
+  server: 138.2.37.59
   skip-cert-verify: true
   sni: www.bing.com
-  tls: true
-  type: http
+  type: hysteria2
 -
-  name: 🇹🇼 TW-03 · 40ms
-  server: sdf65h46wr.df6h451rh.xin
+  type: hysteria
+  name: 🇺🇸 US-01 · 42ms
+  server: 198.200.57.142
+  port: 22335
+  password: github.com/Alvin9999-newpac/fanqiang
+  tls: true
+  servername: bing.com
+  sni: bing.com
+  skip-cert-verify: true
+  alpn:
+    - h3
+  up: 11
+  down: 55
+  auth-str: github.com/Alvin9999-newpac/fanqiang
+-
+  ip: 172.16.0.2/32
+  keepalive: 5
+  mtu: 1280
+  name: 🇨🇦 CA-01 · 42ms
+  persistent-keepalive: 5
+  port: 500
+  private-key: "KAVFtrqtH6RDA0JBlZ4rISv5rDMaywO1btSJIxi+vn8="
+  public-key: "bmXOC+F1FxEMF9dyiK2H5/1SUtzH0JuVo51h2wPfgyo="
+  reserved:
+    - 61
+    - 7
+    - 252
+  server: 162.159.192.7
+  type: wireguard
+  udp: true
+  wnoise: quic
+  wnoisecount: 5
+  wnoisedelay: 5
+  wpayloadsize: 40-90
+-
+  ip: 172.16.0.2/32
+  keepalive: 5
+  mtu: 1280
+  name: 🇨🇦 CA-02 · 42ms
+  persistent-keepalive: 5
+  port: 500
+  private-key: "+AYnqJYinZIJ6yZwIjmirctmPqzfctf6H2fTqywa/XM="
+  public-key: "bmXOC+F1FxEMF9dyiK2H5/1SUtzH0JuVo51h2wPfgyo="
+  reserved:
+    - 39
+    - 4
+    - 107
+  server: 162.159.192.2
+  type: wireguard
+  udp: true
+  wnoise: quic
+  wnoisecount: 5
+  wnoisedelay: 5
+  wpayloadsize: 40-90
+-
+  ip: 172.16.0.2/32
+  keepalive: 5
+  mtu: 1280
+  name: 🇨🇦 CA-03 · 42ms
+  persistent-keepalive: 5
+  port: 4500
+  private-key: "2DpN1E4RZmiBm7x2vlr6vFcIkjixfcTYZtGMlKYPZEM="
+  public-key: "bmXOC+F1FxEMF9dyiK2H5/1SUtzH0JuVo51h2wPfgyo="
+  reserved:
+    - 125
+    - 168
+    - 120
+  server: 162.159.192.7
+  type: wireguard
+  udp: true
+  wnoise: quic
+  wnoisecount: 5
+  wnoisedelay: 5
+  wpayloadsize: 40-90
+-
+  type: hysteria
+  name: 🇺🇸 US-02 · 43ms
+  server: 137.175.82.43
+  port: 20022
+  password: dongtaiwang.com
+  tls: true
+  servername: bing.com
+  sni: bing.com
+  skip-cert-verify: true
+  alpn:
+    - h3
+  up: 20
+  down: 20
+  auth-str: dongtaiwang.com
+-
+  type: hysteria
+  name: 🇺🇸 US-03 · 78ms
+  server: 137.175.82.44
+  port: 20022
+  password: dongtaiwang.com
+  tls: true
+  servername: bing.com
+  sni: bing.com
+  skip-cert-verify: true
+  alpn:
+    - h3
+  up: 11
+  down: 55
+  auth-str: dongtaiwang.com
+-
+  name: 🇰🇷 KR-01 · 92ms
   port: 443
-  type: anytls
-  password: 0324fbc29561
-  udp: true
-  sni: images.ctfassets.net
-  skip-cert-verify: true
--
-  name: 🇨🇿 CZ-01 · 170ms
-  password: None
-  port: 443
-  server: 185.216.35.130
-  skip-cert-verify: true
-  sub_tag: P002-260618
-  tls: true
-  type: http
-  udp: true
-  x-toolall-mihomo: true
--
-  name: 🇩🇰 DK-01 · 183ms
-  port: 9443
-  server: 185.245.84.50
-  skip-cert-verify: true
-  sub_tag: R002-260618
-  tls: true
-  type: http
-  udp: true
-  x-toolall-mihomo: true
--
-  name: 🇧🇬 BG-01 · 188ms
-  password: None
-  port: 443
-  server: 185.94.192.210
-  skip-cert-verify: true
-  sub_tag: R002-260618
-  tls: true
-  type: http
-  udp: true
-  x-toolall-mihomo: true
--
-  name: 🌐 未知-01 · 189ms
-  port: 9443
-  server: 185.164.35.16
-  skip-cert-verify: true
-  tls: true
-  type: http
--
-  name: 🇪🇪 EE-01 · 200ms
-  port: 9443
-  server: 95.153.31.66
+  server: 152.69.230.221
   skip-cert-verify: true
   tls: true
   type: http
@@ -150,18 +201,20 @@ proxy-groups:
     - ♻️ 自动选择
     - 🔯 故障转移
     - 🇹🇼 台湾
-    - 🇪🇺 欧洲
+    - 🇯🇵 日本
+    - 🇺🇸 美国
+    - 🇰🇷 韩国
     - 🌍 其他
     - 🎯 全球直连
-    - 🇹🇼 TW-01 · 40ms
-    - 🇹🇼 TW-02 · 71ms
-    - 🇷🇴 RO-01 · 20ms
-    - 🇹🇼 TW-03 · 40ms
-    - 🇨🇿 CZ-01 · 170ms
-    - 🇩🇰 DK-01 · 183ms
-    - 🇧🇬 BG-01 · 188ms
-    - 🌐 未知-01 · 189ms
-    - 🇪🇪 EE-01 · 200ms
+    - 🇹🇼 TW-01 · 70ms
+    - 🇯🇵 JP-01 · 29ms
+    - 🇺🇸 US-01 · 42ms
+    - 🇨🇦 CA-01 · 42ms
+    - 🇨🇦 CA-02 · 42ms
+    - 🇨🇦 CA-03 · 42ms
+    - 🇺🇸 US-02 · 43ms
+    - 🇺🇸 US-03 · 78ms
+    - 🇰🇷 KR-01 · 92ms
 -
   name: ♻️ 自动选择
   type: url-test
@@ -170,30 +223,30 @@ proxy-groups:
   tolerance: 50
   lazy: false
   proxies:
-    - 🇹🇼 TW-01 · 40ms
-    - 🇹🇼 TW-02 · 71ms
-    - 🇷🇴 RO-01 · 20ms
-    - 🇹🇼 TW-03 · 40ms
-    - 🇨🇿 CZ-01 · 170ms
-    - 🇩🇰 DK-01 · 183ms
-    - 🇧🇬 BG-01 · 188ms
-    - 🌐 未知-01 · 189ms
-    - 🇪🇪 EE-01 · 200ms
+    - 🇹🇼 TW-01 · 70ms
+    - 🇯🇵 JP-01 · 29ms
+    - 🇺🇸 US-01 · 42ms
+    - 🇨🇦 CA-01 · 42ms
+    - 🇨🇦 CA-02 · 42ms
+    - 🇨🇦 CA-03 · 42ms
+    - 🇺🇸 US-02 · 43ms
+    - 🇺🇸 US-03 · 78ms
+    - 🇰🇷 KR-01 · 92ms
 -
   name: 🔯 故障转移
   type: fallback
   url: "https://www.gstatic.com/generate_204"
   interval: 300
   proxies:
-    - 🇹🇼 TW-01 · 40ms
-    - 🇹🇼 TW-02 · 71ms
-    - 🇷🇴 RO-01 · 20ms
-    - 🇹🇼 TW-03 · 40ms
-    - 🇨🇿 CZ-01 · 170ms
-    - 🇩🇰 DK-01 · 183ms
-    - 🇧🇬 BG-01 · 188ms
-    - 🌐 未知-01 · 189ms
-    - 🇪🇪 EE-01 · 200ms
+    - 🇹🇼 TW-01 · 70ms
+    - 🇯🇵 JP-01 · 29ms
+    - 🇺🇸 US-01 · 42ms
+    - 🇨🇦 CA-01 · 42ms
+    - 🇨🇦 CA-02 · 42ms
+    - 🇨🇦 CA-03 · 42ms
+    - 🇺🇸 US-02 · 43ms
+    - 🇺🇸 US-03 · 78ms
+    - 🇰🇷 KR-01 · 92ms
 -
   name: 🇹🇼 台湾
   type: url-test
@@ -201,21 +254,33 @@ proxy-groups:
   interval: 300
   tolerance: 50
   proxies:
-    - 🇹🇼 TW-01 · 40ms
-    - 🇹🇼 TW-02 · 71ms
-    - 🇹🇼 TW-03 · 40ms
+    - 🇹🇼 TW-01 · 70ms
 -
-  name: 🇪🇺 欧洲
+  name: 🇯🇵 日本
   type: url-test
   url: "https://www.gstatic.com/generate_204"
   interval: 300
   tolerance: 50
   proxies:
-    - 🇷🇴 RO-01 · 20ms
-    - 🇨🇿 CZ-01 · 170ms
-    - 🇩🇰 DK-01 · 183ms
-    - 🇧🇬 BG-01 · 188ms
-    - 🇪🇪 EE-01 · 200ms
+    - 🇯🇵 JP-01 · 29ms
+-
+  name: 🇺🇸 美国
+  type: url-test
+  url: "https://www.gstatic.com/generate_204"
+  interval: 300
+  tolerance: 50
+  proxies:
+    - 🇺🇸 US-01 · 42ms
+    - 🇺🇸 US-02 · 43ms
+    - 🇺🇸 US-03 · 78ms
+-
+  name: 🇰🇷 韩国
+  type: url-test
+  url: "https://www.gstatic.com/generate_204"
+  interval: 300
+  tolerance: 50
+  proxies:
+    - 🇰🇷 KR-01 · 92ms
 -
   name: 🌍 其他
   type: url-test
@@ -223,7 +288,9 @@ proxy-groups:
   interval: 300
   tolerance: 50
   proxies:
-    - 🌐 未知-01 · 189ms
+    - 🇨🇦 CA-01 · 42ms
+    - 🇨🇦 CA-02 · 42ms
+    - 🇨🇦 CA-03 · 42ms
 -
   name: 🎯 全球直连
   type: select
