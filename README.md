@@ -68,6 +68,7 @@ scripts/pipeline.py            # 全流程脚本（抓取→校验→测速→�
 requirements.txt               # 只依赖 pyyaml
 out/flclash-free-nodes.yaml    # 成品订阅
 out/nodes.txt                  # 文本清单
+out/run-stats.json             # 每轮构建的“漏斗统计”（候选→初筛→双站→探针→下发）
 ```
 
 ## 节点源（都在 `scripts/pipeline.py` 顶部）

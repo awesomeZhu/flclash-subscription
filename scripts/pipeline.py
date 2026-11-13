@@ -1720,6 +1720,37 @@ def main():
     from collections import Counter
     log("  地区: %s" % dict(Counter(it["cc"] or "??" for it in items).most_common(10)))
 
+    # 把这一轮的“漏斗”落成文件，方便事后判断是“节点质量差”还是“我们没测全”
+    stats = {
+        "generated_at": time.strftime("%Y-%m-%d %H:%M:%S %z"),
+        "candidates": len(merged),                       # 抓取去重后的候选
+        "prefilter_alive": len(quick),                   # 过初筛（HTTP 可达）
+        "verified_both_ok": len(verified),               # 谷歌+YouTube 都通
+        "verified_dead": vstat.get("dead", 0),
+        "carry_loaded": len(prev),
+        "cn_probe": {
+            "enabled": bool(args.cn_check),
+            "budget": args.cn_max_nodes,
+            "attempted": len(cn_data) if args.cn_check else 0,
+            "definitive": definite if args.cn_check else 0,
+            "ok": cn_hit,
+            "unreachable": cn_miss,
+            "unmeasured": cn_unmeasured,
+            "gate_ms": args.cn_max_delay,
+        },
+        "coverage": (round(len(cn_data) / float(len(verified)), 3)
+                     if args.cn_check and verified else None),
+        "final": len(proxies),
+    }
+    try:
+        stats_path = os.path.join(os.path.dirname(os.path.abspath(args.public_out or args.out)),
+                                  "run-stats.json")
+        with open(stats_path, "w", encoding="utf-8", newline="\n") as f:
+            json.dump(stats, f, ensure_ascii=False, indent=2)
+        log("  统计: %s" % stats_path)
+    except Exception as e:  # noqa: BLE001
+        log("  [warn] 统计文件写入失败: %s" % str(e)[:80])
+
     ok = validate_output(exe, args.out, os.path.join(work, "final"))
     if ok and args.public_out:
         ok = validate_output(exe, args.public_out, os.path.join(work, "final")) and ok
