@@ -1024,6 +1024,8 @@ TIER_RANK = {"full": 0, "slow": 1, "gonly": 2}
 TIER_TAG = {"full": "", "slow": " ·高延迟", "gonly": " ·仅谷歌"}
 # 亚太地区：CI 机房在美国，这些节点“机房延迟”天然偏高，但国内用其实快，单独给宽门槛
 ASIA = {"HK", "TW", "JP", "SG", "KR", "MO"}
+# 只保留这五个地区（用户明确要求）：日本、新加坡、韩国、台湾、香港
+ASIA_STRICT = {"HK", "TW", "JP", "SG", "KR"}
 
 
 def region_of(cc):
@@ -1376,9 +1378,9 @@ def main():
                     help="国内探针城市，默认 Shanghai（globalping 的国内探针城市）")
     ap.add_argument("--cn-max-delay", type=int, default=120,
                     help="上海 -> 节点 的 RTT 门槛（毫秒），超过就下发时丢弃，默认 120")
-    ap.add_argument("--cn-region", default="auto", choices=["auto", "asia", "all"],
-                    help="探针只测哪些地区：auto=门槛≤150ms 时只测亚太（省额度、等于全量覆盖可能及格的）；"
-                         "all=全都测（额度紧张时不推荐）")
+    ap.add_argument("--cn-region", default="asia", choices=["asia", "auto", "all"],
+                    help="只测/只保留哪些地区：asia=日/新/韩/台/港（默认，其余全部剔除）；"
+                         "auto=再加澳门和归属未知；all=不筛选")
     ap.add_argument("--cn-max-nodes", type=int, default=150,
                     help="本次最多量多少个节点（globalping 免费额度 250 次/小时），默认 150")
     ap.add_argument("--cn-workers", type=int, default=4,
@@ -1567,18 +1569,16 @@ def main():
                   and infra <= max(2, attempts * 0.2))
             return hits, unreach, infra, definite, ok
 
-        # 地区预筛：门槛 ≤150ms 时，上海到欧美本来就 >150ms，给它们量探针纯属浪费额度。
-        # 这一步让“全量覆盖所有可能及格的节点”变成现实：亚洲候选只占 ~25%。
+        # 地区筛选：只留 JP/SG/KR/TW/HK（用户要求），其余地区直接剔除，不浪费探针额度。
+        # 这样这一批节点能被“全量测完”（亚太候选约占 25%，额度足够）。
         probe_pool = candidates
-        if args.cn_region in ("auto", "asia") and args.cn_max_delay <= 150:
-            ok_cc = ASIA | {"??"}          # 归属未知的也测，避免误杀
+        if args.cn_region in ("auto", "asia"):
+            keep = ASIA_STRICT if args.cn_region == "asia" else (ASIA_STRICT | {"MO", "??"})
             probe_pool = [p for p in candidates
-                          if (geo.get(str(p.get("server")), {}).get("cc") or "??") in ok_cc]
+                          if (geo.get(str(p.get("server")), {}).get("cc") or "??") in keep]
             skipped = len(candidates) - len(probe_pool)
-            if skipped:
-                log("  地区预筛：%d 个非亚太节点不测（上海到欧美 >150ms，不可能 ≤%dms），"
-                    "探针额度全部给 %d 个亚太/未知节点"
-                    % (skipped, args.cn_max_delay, len(probe_pool)))
+            log("  地区筛选（%s）：只保留 %s；剔除 %d 个其他地区节点，本次全部测 %d 个"
+                % (args.cn_region, "/".join(sorted(keep)), skipped, len(probe_pool)))
 
         def _run():
             return cn_probe_nodes(probe_pool, geo, [{"city": args.cn_city, "country": "CN"}],
