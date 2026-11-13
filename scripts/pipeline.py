@@ -1374,8 +1374,11 @@ def main():
                     help="关闭上海探针实测（默认开启）")
     ap.add_argument("--cn-city", default="Shanghai",
                     help="国内探针城市，默认 Shanghai（globalping 的国内探针城市）")
-    ap.add_argument("--cn-max-delay", type=int, default=200,
-                    help="上海 -> 节点 的 RTT 门槛（毫秒），超过就下发时丢弃，默认 200")
+    ap.add_argument("--cn-max-delay", type=int, default=120,
+                    help="上海 -> 节点 的 RTT 门槛（毫秒），超过就下发时丢弃，默认 120")
+    ap.add_argument("--cn-region", default="auto", choices=["auto", "asia", "all"],
+                    help="探针只测哪些地区：auto=门槛≤150ms 时只测亚太（省额度、等于全量覆盖可能及格的）；"
+                         "all=全都测（额度紧张时不推荐）")
     ap.add_argument("--cn-max-nodes", type=int, default=150,
                     help="本次最多量多少个节点（globalping 免费额度 250 次/小时），默认 150")
     ap.add_argument("--cn-workers", type=int, default=4,
@@ -1564,8 +1567,21 @@ def main():
                   and infra <= max(2, attempts * 0.2))
             return hits, unreach, infra, definite, ok
 
+        # 地区预筛：门槛 ≤150ms 时，上海到欧美本来就 >150ms，给它们量探针纯属浪费额度。
+        # 这一步让“全量覆盖所有可能及格的节点”变成现实：亚洲候选只占 ~25%。
+        probe_pool = candidates
+        if args.cn_region in ("auto", "asia") and args.cn_max_delay <= 150:
+            ok_cc = ASIA | {"??"}          # 归属未知的也测，避免误杀
+            probe_pool = [p for p in candidates
+                          if (geo.get(str(p.get("server")), {}).get("cc") or "??") in ok_cc]
+            skipped = len(candidates) - len(probe_pool)
+            if skipped:
+                log("  地区预筛：%d 个非亚太节点不测（上海到欧美 >150ms，不可能 ≤%dms），"
+                    "探针额度全部给 %d 个亚太/未知节点"
+                    % (skipped, args.cn_max_delay, len(probe_pool)))
+
         def _run():
-            return cn_probe_nodes(candidates, geo, [{"city": args.cn_city, "country": "CN"}],
+            return cn_probe_nodes(probe_pool, geo, [{"city": args.cn_city, "country": "CN"}],
                                   args.cn_workers, 90, args.cn_max_nodes)
 
         cn_data = _run()
@@ -1731,6 +1747,7 @@ def main():
         "cn_probe": {
             "enabled": bool(args.cn_check),
             "budget": args.cn_max_nodes,
+            "pool": len(probe_pool) if args.cn_check else 0,
             "attempted": len(cn_data) if args.cn_check else 0,
             "definitive": definite if args.cn_check else 0,
             "ok": cn_hit,
@@ -1738,8 +1755,8 @@ def main():
             "unmeasured": cn_unmeasured,
             "gate_ms": args.cn_max_delay,
         },
-        "coverage": (round(len(cn_data) / float(len(verified)), 3)
-                     if args.cn_check and verified else None),
+        "coverage": (round(len(cn_data) / float(len(probe_pool)), 3)
+                     if args.cn_check and probe_pool else None),
         "final": len(proxies),
     }
     try:

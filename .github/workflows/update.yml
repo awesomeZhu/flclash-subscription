@@ -65,13 +65,13 @@ jobs:
             OUT_ARGS="--out out/flclash-free-nodes.yaml"
           fi
           # --max-delay 200      : 机房（美国）测的“节点能不能出去”：谷歌/YouTube 双通 + 机房延迟上限
-          # --cn-max-delay 200   : 上海探针（globalping）实测“上海 -> 节点”RTT 上限，这才是下发依据
-          # --cn-max-nodes 80    : 每次只量 80 个（globalping 250/小时，共享出口容易被占；
-          #                        少用额度更容易挤进去，代价是覆盖的候选少一些）
+          # --cn-max-delay 120   : 上海实测门槛（收紧到 120ms，只留真正快的那一档）
+          # --cn-max-nodes 120    : 每次最多量 120 个（全球额度 250/小时；配合下面的地区预筛，
+          #                        亚太候选一般 60~120 个，等于"可能及格的都测到"）
           # --carry-max-delay 150: 上一版老节点复测，上海 RTT ≤150ms 才保留并排最前
           # --max-delay-asia 400 : 仅在探针拿不到数据时兜底，港澳台日韩新放宽
           python -u scripts/pipeline.py --workers 128 --rounds 2 --timeout 3000 \
-            --max-delay 200 --max-delay-asia 400 --cn-max-delay 200 --cn-max-nodes 80 \
+            --max-delay 200 --max-delay-asia 400 --cn-max-delay 120 --cn-max-nodes 120 \
             --carry-max-delay 150 $OUT_ARGS 2>&1 | tee pipeline.log
 
       # 合并版含密钥，只推到私有 Gist；公开仓库里永远只有免费节点
