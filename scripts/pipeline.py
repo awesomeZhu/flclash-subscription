@@ -783,6 +783,104 @@ def _gp_ms(res, target_ips=None):
     return None
 
 
+def probe_identity(p):
+    """客户端真正会发出去的 TLS SNI / Host。
+
+    CDN 前缀型节点（CloudFront/Cloudflare 等）的 server 只是个边缘 IP，
+    真正决定能不能通的是 SNI/Host —— 而国内是按 SNI 阻断的（TCP 能握手、TLS 被重置）。
+    所以只要配置里带 servername/sni/ws Host，就必须用它做校验，不能用 IP。"""
+    srv = str(p.get("server") or "")
+    cands = [p.get("servername"), p.get("sni")]
+    ws = p.get("ws-opts")
+    if isinstance(ws, dict):
+        cands.append((ws.get("headers") or {}).get("Host"))
+    grpc = p.get("grpc-opts")
+    if isinstance(grpc, dict):
+        cands.append(grpc.get("grpc-service-name"))
+    if isinstance(p.get("host"), str):
+        cands.append(p.get("host"))
+    for c in cands:
+        if not c:
+            continue
+        c = str(c).strip()
+        if not c or c == srv:
+            continue
+        if re.match(r"^\d{1,3}(\.\d{1,3}){3}$", c):   # IP 不能当 SNI 校验
+            continue
+        return c
+    return None
+
+
+def _gp_http(host, city, timeout_s=90):
+    """从 city 探针发一个真实 HTTPS 请求到 https://<host>/。
+
+    等价于“客户端带着这个 SNI 去握手”——SNI 被墙时会直接 ECONNRESET，
+    这正是 FLClash 里显示超时的真实原因。返回 (ok, tcp_rtt_ms, 类型)，
+    类型为 "http" / "quota" / "blocked"，后者用于区分“额度问题”和“真的被阻断”。"""
+    if _gp_budget["remaining"] <= 1:
+        return False, None, "quota"
+    payload = {"type": "http", "target": host, "locations": [city],
+               "measurementOptions": {"request": {"method": "GET", "path": "/"}}, "limit": 1}
+    try:
+        j, hdrs = _gp_call(GP_API, payload)
+    except urllib.error.HTTPError as e:
+        if e.code == 429:
+            _gp_budget["remaining"] = 0
+            try:
+                _gp_budget["reset"] = int(e.headers.get("X-RateLimit-Reset", 3600))
+            except Exception:  # noqa: BLE001
+                pass
+            return False, None, "quota"
+        return False, None, "blocked"
+    except Exception:  # noqa: BLE001
+        return False, None, "blocked"
+    try:
+        _gp_budget["remaining"] = int(hdrs.get("X-RateLimit-Remaining", 999))
+        _gp_budget["reset"] = int(hdrs.get("X-RateLimit-Reset", 3600))
+    except Exception:  # noqa: BLE001
+        pass
+    mid = j.get("id")
+    if not mid:
+        return False, None, "blocked"
+    t0 = time.time()
+    while time.time() - t0 < timeout_s:
+        time.sleep(2)
+        try:
+            res, _ = _gp_call("%s/%s" % (GP_API, mid))
+        except Exception:  # noqa: BLE001
+            continue
+        if res.get("status") == "finished":
+            for r in res.get("results", []):
+                o = r.get("result") or {}
+                if o.get("status") == "finished":
+                    tm = o.get("timings") or {}
+                    rtt = tm.get("tcp") or tm.get("total")
+                    return True, int(rtt or 0), "http"
+                txt = str(o.get("rawOutput") or o.get("error") or "")
+                if "ECONNRESET" in txt or "ECONNREFUSED" in txt or "reset" in txt.lower():
+                    return False, None, "blocked"
+                return False, None, "blocked"
+            return False, None, "blocked"
+    return False, None, "blocked"
+
+
+def cn_probe_proxy(p, city, timeout_s=90):
+    """从国内探针判断“这个节点在国内能不能用”。
+
+    带 SNI/Host 的（CDN 前缀、reality、ws 域名）走真实 HTTPS 校验；
+    裸 IP 的退回 ping/mtr。这就是之前缺的那一环——
+    只测 TCP 会把“TCP 通但 TLS 被 SNI 重置”的节点当成好节点。"""
+    ident = probe_identity(p)
+    if ident:
+        ok, ms, kind = _gp_http(ident, city, timeout_s)
+        if ok:
+            return ms, "http(TLS)"
+        if kind == "quota":
+            return None, "额度用尽"
+        return None, "SNI/TLS 阻断"
+    return cn_probe(str(p.get("server")), p.get("port") or 443, city, timeout_s)
+
+
 def cn_probe(target, port, city, timeout_s=90):
     """从 city 探针量一次 target 的 RTT。
 
@@ -861,7 +959,7 @@ def cn_probe_nodes(nodes, geo, cities, workers, timeout_s, budget):
 
     def one(p):
         return (str(p.get("server")), int(p.get("port") or 443)), \
-            cn_probe(str(p.get("server")), p.get("port") or 443, cities[0], timeout_s)
+            cn_probe_proxy(p, cities[0], timeout_s)
 
     with ThreadPoolExecutor(max_workers=max(1, workers)) as ex:
         futs = [ex.submit(one, p) for p in todo]
@@ -1034,6 +1132,7 @@ def build(nodes, geo, out_path, workers_note, selfhost=None, public_path=None):
         p.pop("__id", None)
         p.pop("__src", None)
         p.pop("__tier", None)
+        p.pop("__carry", None)          # 内部标记，别写进订阅文件
         p["name"] = name
         it["name"] = name
         it["region"] = region_of(cc)
