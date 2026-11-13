@@ -1,14 +1,12 @@
-# 免费节点清单  2026-11-13 13:57
+# 免费节点清单  2026-11-13 06:23
 # 序号 | 地区 | 协议 | 服务器:端口 | 延迟(ms)
 
-  1 | TW | http      | twmoon1-cdn-route.couldflare-cdn.com:1443 | 54
-  2 | CA | trojan    | 172.64.152.234:443 | 64
-  3 | TW | anytls    | sdf65h46wr.df6h451rh.xin:443 | 88
-  4 | TW | anytls    | forwarded.frnhk.xyz:2053 | 114
-  5 | CZ | http      | 185.216.35.66:443 | 168
-  6 | DK | http      | 185.245.84.50:443 | 170
-  7 | RS | http      | 146.70.221.18:443 | 171
-  8 | CA | vless     | 172.67.74.177:443 | 189
-  9 | HU | http      | 146.70.203.18:443 | 193
- 10 | RU | vless     | 188.225.73.41:443 | 193
- 11 | PL | vless     | 138.124.242.46:8443 | 199
+  1 | TW | anytls    | sdf65h46wr.df6h451rh.xin:443 | 40
+  2 | TW | http      | twmoon1-cdn-route.couldflare-cdn.com:1443 | 71
+  3 | RO | http      | 193.176.84.35:9002 | 20
+  4 | TW | anytls    | sdf65h46wr.df6h451rh.xin:443 | 40
+  5 | CZ | http      | 185.216.35.130:443 | 170
+  6 | DK | http      | 185.245.84.50:9443 | 183
+  7 | BG | http      | 185.94.192.210:443 | 188
+  8 | BA | http      | 185.164.35.16:9443 | 189
+  9 | EE | http      | 95.153.31.66:9443 | 200
