@@ -1,12 +1,11 @@
-# 免费节点清单  2026-11-13 09:20
+# 免费节点清单  2026-11-14 01:46
 # 序号 | 地区 | 协议 | 服务器:端口 | 延迟(ms)
 
-  1 | TW | http      | twmoon1-cdn-route.couldflare-cdn.com:1443 | 70
-  2 | JP | hysteria2 | 138.2.37.59:17826 | 29
-  3 | US | hysteria  | 198.200.57.142:22335 | 42
-  4 | CA | wireguard | 162.159.192.7:500 | 42
-  5 | CA | wireguard | 162.159.192.2:500 | 42
-  6 | CA | wireguard | 162.159.192.7:4500 | 42
-  7 | US | hysteria  | 137.175.82.43:20022 | 43
-  8 | US | hysteria  | 137.175.82.44:20022 | 78
-  9 | KR | http      | 152.69.230.221:443 | 92
+  1 | JP | hysteria2 | 138.2.37.59:17826 | 22
+  2 | CA | wireguard | 162.159.192.7:4500 | 148
+  3 | JP | vless     | zfapi.zalolink.com:11802 | 12
+  4 | JP | vless     | zfapi.zalolink.com:30322 | 13
+  5 | SG | trojan    | 15.235.184.127:443 | 18
+  6 | SG | trojan    | 15.235.184.127:443 | 18
+  7 | CA | vless     | 162.159.152.4:443 | 42
+  8 | JP | vless     | jp2api.xyy123.win:443 | 67
