@@ -1,11 +1,9 @@
-# 免费节点清单  2026-11-14 01:46
+# 免费节点清单  2026-11-15 01:17
 # 序号 | 地区 | 协议 | 服务器:端口 | 延迟(ms)
 
-  1 | JP | hysteria2 | 138.2.37.59:17826 | 22
-  2 | CA | wireguard | 162.159.192.7:4500 | 148
-  3 | JP | vless     | zfapi.zalolink.com:11802 | 12
-  4 | JP | vless     | zfapi.zalolink.com:30322 | 13
-  5 | SG | trojan    | 15.235.184.127:443 | 18
-  6 | SG | trojan    | 15.235.184.127:443 | 18
-  7 | CA | vless     | 162.159.152.4:443 | 42
-  8 | JP | vless     | jp2api.xyy123.win:443 | 67
+  1 | JP | vless     | zfapi.zalolink.com:11802 | 6
+  2 | HK | vless     | 8.217.1.203:8443 | 5
+  3 | CA | vless     | 104.18.43.144:80 | 43
+  4 | CA | vless     | cf.090227.xyz:8443 | 46
+  5 | US | vless     | 47.253.226.114:443 | 46
+  6 | US | hysteria  | 137.175.82.44:20022 | 61

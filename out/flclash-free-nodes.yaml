@@ -1,9 +1,9 @@
 # FLClash / Mihomo 订阅 — 免费公共节点
-# 生成时间: 2026-11-14 01:46 (UTC+0000)   节点: 8
+# 生成时间: 2026-11-15 01:17 (UTC+0000)   节点: 6
 # 数据来源: GitHub 上每日更新的公开免费节点库，合并去重后逐个实测：
 #   ① 谷歌 (www.google.com/generate_204) 与 YouTube (www.youtube.com) 都能真打开；
 #   ② 上海探针（globalping.io）实测“上海 → 节点”RTT ≤ 120ms，节点名里的数字就是上海延迟。
-#   其中 2 个是上一版保留的老节点（复测后上海 RTT ≤ 150ms 才留，排在最前）
+#   其中 1 个是上一版保留的老节点（复测后上海 RTT ≤ 150ms 才留，排在最前）
 # 本文件由 GitHub Actions 自动生成，请勿手工修改
 
 mixed-port: 7890
@@ -61,39 +61,6 @@ dns:
       - "https://1.12.12.12/dns-query"
 proxies:
 -
-  auth: abedf59203ff9523
-  obfs: salamander
-  obfs-password: ce8a8b39835f0ce5340cf548892e8e71
-  password: abedf59203ff9523
-  port: 17826
-  ports: "17826,20000-40000"
-  server: 138.2.37.59
-  skip-cert-verify: true
-  sni: www.bing.com
-  type: hysteria2
-  name: 🇯🇵 JP-01 · 22ms
--
-  ip: 172.16.0.2/32
-  keepalive: 5
-  mtu: 1280
-  persistent-keepalive: 5
-  port: 4500
-  private-key: "2DpN1E4RZmiBm7x2vlr6vFcIkjixfcTYZtGMlKYPZEM="
-  public-key: "bmXOC+F1FxEMF9dyiK2H5/1SUtzH0JuVo51h2wPfgyo="
-  reserved:
-    - 125
-    - 168
-    - 120
-  server: 162.159.192.7
-  type: wireguard
-  udp: true
-  wnoise: quic
-  wnoisecount: 5
-  wnoisedelay: 5
-  wpayloadsize: 40-90
-  name: 🇨🇦 CA-01 · 148ms
--
-  name: 🇯🇵 JP-02 · 12ms
   server: zfapi.zalolink.com
   port: 11802
   type: vless
@@ -107,72 +74,81 @@ proxies:
   client-fingerprint: ios
   network: tcp
   udp: true
+  name: 🇯🇵 JP-01 · 6ms
 -
-  name: 🇯🇵 JP-03 · 13ms
-  server: zfapi.zalolink.com
-  port: 30322
+  name: 🇭🇰 HK-01 · 5ms
+  server: 8.217.1.203
+  port: 8443
   type: vless
-  uuid: 57beeeb0-03fc-4fc9-94da-7604488a7134
+  uuid: 8b17beac-b143-447d-aa68-14cbb121a602
   tls: true
   flow: xtls-rprx-vision
   reality-opts:
-    public-key: 5gncThwqPFzLu23WO3mPTEhG7-KgVYlGVvveHjM2SUo
-    short-id: 6a60e7e382d6
-  servername: psstatic.cdn.bcebos.com
-  client-fingerprint: ios
+    public-key: 74P0QFvaK6B13rHsxR_t0lqRlg4YLuORD4VaHr5Jd38
+    short-id: 0bf55f64
+  servername: www.apple.com
+  client-fingerprint: chrome
   network: tcp
   udp: true
 -
-  name: 🇸🇬 SG-01 · 18ms
-  password: 0ab6c98dae3b48e8b9c4a776b6c9c19a
-  port: 443
-  server: 15.235.184.127
-  skip-cert-verify: false
-  sni: exploredigitaljobplatformandfindonlinework.com
-  type: trojan
--
-  type: trojan
-  name: 🇸🇬 SG-02 · 18ms
-  server: 15.235.184.127
-  port: 443
-  password: 0ab6c98dae3b48e8b9c4a776b6c9c19a
-  udp: true
-  tls: true
-  servername: exploredigitaljobplatformandfindonlinework.com
-  sni: exploredigitaljobplatformandfindonlinework.com
-  skip-cert-verify: true
--
+  name: 🇨🇦 CA-01 · 43ms
+  server: 104.18.43.144
+  port: 80
   type: vless
-  name: 🇨🇦 CA-02 · 42ms
-  server: 162.159.152.4
-  port: 443
-  uuid: f2a73750-3087-48ff-a763-1348c15dce68
-  udp: true
-  tls: true
-  servername: rAyAn-007.mAxImA.DpDnS.OrG
-  sni: rAyAn-007.mAxImA.DpDnS.OrG
-  skip-cert-verify: false
-  client-fingerprint: chrome
+  uuid: MiMiTDL
+  tls: false
+  encryption: mlkem768x25519plus.native.0rtt.GlIc2LFlqBQ3itRnw8zoo3tfD7MSknWWmmLVDdr88jE
   network: ws
   ws-opts:
-    path: /
+    path: /MiMiTDL
     headers:
-      Host: rAyAn-007.mAxImA.DpDnS.OrG
--
-  name: 🇯🇵 JP-04 · 67ms
-  server: jp2api.xyy123.win
-  port: 443
-  type: vless
-  uuid: 5811a996-3687-44e2-8633-87d70d2a64ce
-  tls: true
-  flow: xtls-rprx-vision
-  reality-opts:
-    public-key: CKfGUIOy-k2OfwtxsqeHIQWwR29WAbypOvKH4bAVo18
-    short-id: 2e81f4a1ed23143d
-  servername: sribsrch.ecom.samsung.com
-  client-fingerprint: chrome
-  network: tcp
+      Host: erosan.seminar-irani.ir
+    v2ray-http-upgrade: true
   udp: true
+-
+  encryption: none
+  name: 🇨🇦 CA-02 · 46ms
+  network: ws
+  port: 8443
+  server: cf.090227.xyz
+  servername: liusuyan.cc.cd
+  tls: true
+  type: vless
+  uuid: 889fa37f-6bce-4674-8a49-1cc435e11de7
+  ws-opts:
+    headers:
+      Host: liusuyan.cc.cd
+    path: "/proxyip=ProxyIP.SG.CMLiussss.Net"
+-
+  type: vless
+  name: 🇺🇸 US-01 · 46ms
+  server: 47.253.226.114
+  port: 443
+  uuid: 055a1ce8-2a16-4a0d-a2c2-22826c9b2413
+  flow: xtls-rprx-vision
+  udp: true
+  tls: true
+  servername: www.cloudflare.com
+  sni: www.cloudflare.com
+  skip-cert-verify: true
+  client-fingerprint: chrome
+  reality-opts:
+    public-key: Svl81isn16RPAFnjtmYw7A6TPnsEPLHuYYaJht65Rzc
+-
+  type: hysteria
+  name: 🇺🇸 US-02 · 61ms
+  server: 137.175.82.44
+  port: 20022
+  password: dongtaiwang.com
+  tls: true
+  servername: bing.com
+  sni: bing.com
+  skip-cert-verify: true
+  alpn:
+    - h3
+  up: 11
+  down: 55
+  auth-str: dongtaiwang.com
 proxy-groups:
 -
   name: 🚀 节点选择
@@ -180,18 +156,17 @@ proxy-groups:
   proxies:
     - ♻️ 自动选择
     - 🔯 故障转移
+    - 🇭🇰 香港
     - 🇯🇵 日本
-    - 🇸🇬 新加坡
+    - 🇺🇸 美国
     - 🌍 其他
     - 🎯 全球直连
-    - 🇯🇵 JP-01 · 22ms
-    - 🇨🇦 CA-01 · 148ms
-    - 🇯🇵 JP-02 · 12ms
-    - 🇯🇵 JP-03 · 13ms
-    - 🇸🇬 SG-01 · 18ms
-    - 🇸🇬 SG-02 · 18ms
-    - 🇨🇦 CA-02 · 42ms
-    - 🇯🇵 JP-04 · 67ms
+    - 🇯🇵 JP-01 · 6ms
+    - 🇭🇰 HK-01 · 5ms
+    - 🇨🇦 CA-01 · 43ms
+    - 🇨🇦 CA-02 · 46ms
+    - 🇺🇸 US-01 · 46ms
+    - 🇺🇸 US-02 · 61ms
 -
   name: ♻️ 自动选择
   type: url-test
@@ -200,28 +175,32 @@ proxy-groups:
   tolerance: 50
   lazy: false
   proxies:
-    - 🇯🇵 JP-01 · 22ms
-    - 🇨🇦 CA-01 · 148ms
-    - 🇯🇵 JP-02 · 12ms
-    - 🇯🇵 JP-03 · 13ms
-    - 🇸🇬 SG-01 · 18ms
-    - 🇸🇬 SG-02 · 18ms
-    - 🇨🇦 CA-02 · 42ms
-    - 🇯🇵 JP-04 · 67ms
+    - 🇯🇵 JP-01 · 6ms
+    - 🇭🇰 HK-01 · 5ms
+    - 🇨🇦 CA-01 · 43ms
+    - 🇨🇦 CA-02 · 46ms
+    - 🇺🇸 US-01 · 46ms
+    - 🇺🇸 US-02 · 61ms
 -
   name: 🔯 故障转移
   type: fallback
   url: "https://www.gstatic.com/generate_204"
   interval: 300
   proxies:
-    - 🇯🇵 JP-01 · 22ms
-    - 🇨🇦 CA-01 · 148ms
-    - 🇯🇵 JP-02 · 12ms
-    - 🇯🇵 JP-03 · 13ms
-    - 🇸🇬 SG-01 · 18ms
-    - 🇸🇬 SG-02 · 18ms
-    - 🇨🇦 CA-02 · 42ms
-    - 🇯🇵 JP-04 · 67ms
+    - 🇯🇵 JP-01 · 6ms
+    - 🇭🇰 HK-01 · 5ms
+    - 🇨🇦 CA-01 · 43ms
+    - 🇨🇦 CA-02 · 46ms
+    - 🇺🇸 US-01 · 46ms
+    - 🇺🇸 US-02 · 61ms
+-
+  name: 🇭🇰 香港
+  type: url-test
+  url: "https://www.gstatic.com/generate_204"
+  interval: 300
+  tolerance: 50
+  proxies:
+    - 🇭🇰 HK-01 · 5ms
 -
   name: 🇯🇵 日本
   type: url-test
@@ -229,19 +208,16 @@ proxy-groups:
   interval: 300
   tolerance: 50
   proxies:
-    - 🇯🇵 JP-01 · 22ms
-    - 🇯🇵 JP-02 · 12ms
-    - 🇯🇵 JP-03 · 13ms
-    - 🇯🇵 JP-04 · 67ms
+    - 🇯🇵 JP-01 · 6ms
 -
-  name: 🇸🇬 新加坡
+  name: 🇺🇸 美国
   type: url-test
   url: "https://www.gstatic.com/generate_204"
   interval: 300
   tolerance: 50
   proxies:
-    - 🇸🇬 SG-01 · 18ms
-    - 🇸🇬 SG-02 · 18ms
+    - 🇺🇸 US-01 · 46ms
+    - 🇺🇸 US-02 · 61ms
 -
   name: 🌍 其他
   type: url-test
@@ -249,8 +225,8 @@ proxy-groups:
   interval: 300
   tolerance: 50
   proxies:
-    - 🇨🇦 CA-01 · 148ms
-    - 🇨🇦 CA-02 · 42ms
+    - 🇨🇦 CA-01 · 43ms
+    - 🇨🇦 CA-02 · 46ms
 -
   name: 🎯 全球直连
   type: select
