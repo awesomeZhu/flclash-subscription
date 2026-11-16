@@ -73,7 +73,7 @@ jobs:
           # --carry-max-delay 150: 上一版老节点复测，上海 RTT ≤150ms 才保留并排最前
           python -u scripts/pipeline.py --workers 128 --rounds 2 --timeout 3000 \
             --cn-types ss,trojan --cn-region asia_na --cn-max-delay 120 --cn-max-nodes 200 \
-            --carry-max-delay 150 $OUT_ARGS 2>&1 | tee pipeline.log
+            --min-nodes 3 --carry-max-delay 150 $OUT_ARGS 2>&1 | tee pipeline.log
 
       # 合并版含密钥，只推到私有 Gist；公开仓库里永远只有免费节点
       - name: 发布合并订阅到私有 Gist（可选）

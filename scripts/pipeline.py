@@ -1611,16 +1611,18 @@ def main():
 
         def _assess(data):
             """这轮探针结果够不够用。判断依据是「额度有没有中途用光」，而不是和候选总数比：
-              - 确定性结论（有 RTT 或明确连不上）至少 5 个（候选不足 5 个时按候选数）；
+              - 确定性结论（有 RTT 或明确连不上）至少 5 个（**可测池不足 5 个时按池大小**）；
               - 因为额度用尽而没量成的比例不能太高（>20% 就说明本轮被限流了）。
-            这样即使为了省额度只量 80 个，只要这 80 个都量成了，结论依然可信。"""
+            注意：这里必须拿“真正参加测量的池子”当基准，而不是全部候选 ——
+            地区/协议筛选后池子可能只有 2~3 个，拿候选数当基准会永远判失败。"""
             hits = sorted(v[0] for v in data.values() if v[0])
             why = _Counter(v[1] for v in data.values() if not v[0])
             unreach = why.get("连不上/无回包", 0)
             infra = why.get("额度用尽", 0) + why.get("限流 429", 0)
             definite = len(hits) + unreach
             attempts = len(data)
-            ok = (attempts > 0 and definite >= min(5, len(candidates))
+            need = min(5, max(1, len(probe_pool)))
+            ok = (attempts > 0 and definite >= need
                   and infra <= max(2, attempts * 0.2))
             return hits, unreach, infra, definite, ok
 
@@ -1656,6 +1658,11 @@ def main():
 
         cn_data = _run()
         hits, unreach, infra, definite, ok = _assess(cn_data)
+        if not probe_pool:
+            log("  筛选后没有可测节点（协议/地区限制太严），本次不下发")
+            annotate("协议/地区筛选后没有任何可测节点（%d 个候选）。可放宽 --cn-types 或 --cn-region"
+                     % len(candidates))
+            return 1
         if not ok and not args.allow_degraded:
             # globalping 免费额度 250 次/小时、按出口 IP 算，GitHub runner 的出口是共享的，
             # 实测出现过“整轮一个数据都没有”和“只量到几个就没额度了”两种。额度快刷新就等一下。
