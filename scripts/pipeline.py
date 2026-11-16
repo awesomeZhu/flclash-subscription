@@ -1631,9 +1631,9 @@ def main():
         probe_pool = candidates
         if args.cn_region in ("asia_na", "asia", "auto"):
             if args.cn_region == "asia_na":
-                keep = ASIA_STRICT | {"CA", "US"}
+                keep = ASIA_STRICT | {"CA", "US", "??"}   # 归属查不到的也留着，别误杀
             elif args.cn_region == "asia":
-                keep = ASIA_STRICT
+                keep = ASIA_STRICT | {"??"}
             else:
                 keep = ASIA_STRICT | {"MO", "??"}
             probe_pool = [p for p in candidates

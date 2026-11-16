@@ -125,6 +125,26 @@ jobs:
           git commit -m "chore(nodes): $(date -u +'%Y-%m-%d %H:%M UTC') 自动更新"
           git push
 
+      # 失败时把日志尾部写进仓库：这样即使没有 Actions 权限，也能从仓库里看到失败原因
+      - name: 失败时把日志尾部写进仓库（可选，失败不影响）
+        if: failure()
+        continue-on-error: true
+        run: |
+          if [ -f pipeline.log ]; then
+            {
+              echo "# 上次构建失败：$(date -u +'%Y-%m-%d %H:%M UTC')"
+              echo ""
+              echo '```'
+              tail -n 150 pipeline.log
+              echo '```'
+            } > out/last-failure.md
+            git config user.name  "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add out/last-failure.md
+            git commit -m "chore(diag): 记录失败日志 $(date -u +'%Y-%m-%d %H:%M UTC')" || true
+            git push || true
+          fi
+
       # 用 jsDelivr 加速地址的话，它会把 @master 的旧内容缓存 12 小时（实测出现过滞后 26 小时），
       # 这里主动清一次 CDN 缓存；raw.githubusercontent.com 本身只有 5 分钟缓存，不需要处理。
       - name: 清理 jsDelivr 缓存（可选，失败不影响构建）
