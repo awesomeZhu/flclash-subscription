@@ -1,12 +1,15 @@
-# 免费节点清单  2026-11-13 06:23
+# 免费节点清单  2026-11-16 01:17
 # 序号 | 地区 | 协议 | 服务器:端口 | 延迟(ms)
 
-  1 | TW | anytls    | sdf65h46wr.df6h451rh.xin:443 | 40
-  2 | TW | http      | twmoon1-cdn-route.couldflare-cdn.com:1443 | 71
-  3 | RO | http      | 193.176.84.35:9002 | 20
-  4 | TW | anytls    | sdf65h46wr.df6h451rh.xin:443 | 40
-  5 | CZ | http      | 185.216.35.130:443 | 170
-  6 | DK | http      | 185.245.84.50:9443 | 183
-  7 | BG | http      | 185.94.192.210:443 | 188
-  8 | BA | http      | 185.164.35.16:9443 | 189
-  9 | EE | http      | 95.153.31.66:9443 | 200
+  1 | HK | vless     | 8.217.1.203:8443 | 6
+  2 | JP | vless     | zfapi.zalolink.com:54528 | 5
+  3 | US | vless     | 162.35.101.168:44333 | 6
+  4 | JP | vless     | zfapi.zalolink.com:43149 | 28
+  5 | JP | vless     | zfapi.zalolink.com:43149 | 28
+  6 | CA | http      | 172.64.68.89:443 | 41
+  7 | CA | vless     | 104.20.63.254:443 | 43
+  8 | SG | hysteria2 | 138.2.89.249:443 | 50
+  9 | TW | anytls    | usa1.gosthk.site:443 | 68
+ 10 | US | vless     | 151.101.36.128:443 | 87
+ 11 | US | vless     | 151.101.36.227:443 | 91
+ 12 | US | vless     | 151.101.36.2:443 | 92
