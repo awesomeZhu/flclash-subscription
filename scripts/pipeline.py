@@ -1180,7 +1180,51 @@ def load_previous(path, limit=60):
     return out
 
 
-def build(nodes, geo, out_path, workers_note, selfhost=None, public_path=None):
+def second_build(candidates, verified, geo, path, regions):
+    """第二份“宽口径”订阅：只做“谷歌+YouTube 双通 + 地区筛选”，不限协议、不做并发压测。
+
+    用途：对照严格规则到底滤掉了哪些其实能用的 IP。"""
+    keep_cc = {c.strip().upper() for c in str(regions).split(",") if c.strip()}
+    nodes, delay = [], {}
+    for p in candidates:
+        info = verified.get(p["__id"])
+        if not info or not (info.get("google") and info.get("youtube")):
+            continue
+        cc = geo.get(str(p.get("server")), {}).get("cc") or "??"
+        if cc not in keep_cc:
+            continue
+        q = dict(p)
+        q["__tier"] = "full"
+        nodes.append(q)
+        delay[q["__id"]] = {"delay": int(info["google"]), "hits": info["hits"],
+                            "tests": info.get("tests", 2), "cn": None}
+    if not nodes:
+        log("  [warn] 宽口径订阅没有符合条件的节点（地区 %s）" % "/".join(sorted(keep_cc)))
+        return None
+    saved = dict(nodes_delay)
+    nodes_delay.clear()
+    nodes_delay.update(delay)
+    try:
+        items, proxies = build(nodes, geo, path, 0, None, None, write_txt=False)
+    finally:
+        nodes_delay.clear()
+        nodes_delay.update(saved)
+    # 在头部加一行说明，避免和严格版混淆
+    try:
+        lines = open(path, encoding="utf-8").read().splitlines()
+        note = ("# ⚠️ 宽口径版：只做了“谷歌+YouTube 双通 + 地区筛选”，不限协议、未做并发压测 —— 用于对照测试")
+        if len(lines) > 1 and "宽口径版" not in lines[1]:
+            lines.insert(1, note)
+            with open(path, "w", encoding="utf-8", newline="\n") as f:
+                f.write("\n".join(lines) + "\n")
+    except Exception as e:  # noqa: BLE001
+        log("  [warn] 宽口径订阅头部注释写入失败: %s" % str(e)[:60])
+    log("  宽口径订阅: %s（%d 个节点，地区 %s）"
+        % (path, len(proxies), "/".join(sorted(keep_cc))))
+    return path
+
+
+def build(nodes, geo, out_path, workers_note, selfhost=None, public_path=None, write_txt=True):
     selfhost = selfhost or []
     items = []
     for p in nodes:
@@ -1342,7 +1386,8 @@ def build(nodes, geo, out_path, workers_note, selfhost=None, public_path=None):
             f.write("\n".join(rows) + "\n")
 
     render(out_path, selfhost)
-    write_nodes_txt(public_path or out_path)   # 清单始终跟着公开版走
+    if write_txt:
+        write_nodes_txt(public_path or out_path)   # 清单始终跟着公开版走
     if public_path:
         # 公开仓库那份：去掉自建节点，避免密钥泄露
         render(public_path, [])
@@ -1451,6 +1496,10 @@ def main():
     ap.add_argument("--max-delay-asia", type=int, default=0,
                     help="亚太节点（港澳台日韩新）单独放宽到 N ms，0=不区分。"
                          "仅在关闭上海探针（--no-cn-check）或探针拿不到数据时起兜底作用")
+    ap.add_argument("--second-out", default="",
+                    help="另存一份宽口径订阅（只做双站验证 + 地区筛选，不限协议、不压测），用于对照")
+    ap.add_argument("--second-regions", default="HK,TW,JP,KR,SG,CA",
+                    help="宽口径订阅保留的地区，默认 HK,TW,JP,KR,SG,CA")
     ap.add_argument("--cn-check", dest="cn_check", action="store_true",
                     help="启用 globalping 上海探针实测（**默认关闭**：实测它与真实体验相关性差，"
                          "改用下面的并发压测 + 地区/协议筛选）")
@@ -1620,6 +1669,17 @@ def main():
         log("  严格验证无法进行：%s" % vstat["fatal"])
         annotate("严格验证无法进行：%s" % vstat["fatal"])
         return 1
+
+    log("[7/9] 查询归属地（先查，因为亚太门槛和探针挑样都要看国家）")
+    t_geo = time.time()
+    geo = geolocate([str(p.get("server")) for p in candidates])
+    log("  已知归属: %d / %d（用时 %.1fs）" % (sum(1 for v in geo.values() if v["cc"]), len(geo),
+                                        time.time() - t_geo))
+
+    # ---- 第二份“宽口径”订阅（可选）：只做双站验证 + 地区筛选，不限协议、不压测 ----
+    if args.second_out:
+        second_build(candidates, verified, geo, args.second_out, args.second_regions)
+
     # 协议筛选：实测（上海本机、真实客户端）只有 ss/trojan 还有存活，
     # REALITY 与 ws/CDN 前缀节点通过率 0% —— 机房能通、国内被识别，留着只会给用户超时。
     if args.cn_types.strip():
@@ -1633,12 +1693,6 @@ def main():
             log("  协议筛选：只留 %s，剔除 %d 个（reality/ws 在国内实测 0%% 通过）"
                 % ("/".join(sorted(allow)), len(drop)))
             candidates = keep
-
-    log("[7/9] 查询归属地（先查，因为亚太门槛和探针挑样都要看国家）")
-    t_geo = time.time()
-    geo = geolocate([str(p.get("server")) for p in candidates])
-    log("  已知归属: %d / %d（用时 %.1fs）" % (sum(1 for v in geo.values() if v["cc"]), len(geo),
-                                        time.time() - t_geo))
 
     # 亚太放宽：CI 机房在美国，港澳台日韩新节点在那边天然 200ms+，你在国内用反而很快，
     # 所以给它们单独一个更宽的门槛（--max-delay-asia），别被 200ms 一刀切掉。

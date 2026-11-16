@@ -73,7 +73,9 @@ jobs:
           python -u scripts/pipeline.py --workers 128 --rounds 2 --timeout 3000 \
             --cn-types ss,trojan --cn-region asia_na --max-delay 200 \
             --burst 6 --burst-min-ok 0.8 --burst-jitter 150 \
-            --min-nodes 3 $OUT_ARGS 2>&1 | tee pipeline.log
+            --min-nodes 3 \
+            --second-out out/flclash-broad.yaml \
+            --second-regions HK,TW,JP,KR,SG,CA $OUT_ARGS 2>&1 | tee pipeline.log
 
       # 合并版含密钥，只推到私有 Gist；公开仓库里永远只有免费节点
       - name: 发布合并订阅到私有 Gist（可选）
