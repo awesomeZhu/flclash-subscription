@@ -1036,6 +1036,10 @@ ASIA = {"HK", "TW", "JP", "SG", "KR", "MO"}
 ASIA_STRICT = {"HK", "TW", "JP", "SG", "KR"}
 # 额度不够时的优先级：亚太 0 > 加拿大 1 > 美国 2 > 其他 3
 REGION_PRIORITY = {"HK": 0, "TW": 0, "JP": 0, "SG": 0, "KR": 0, "CA": 1, "US": 2}
+# 从美区机房到各大区入口的“物理下界”（ms）。实测值远低于下界×0.7，说明这个节点
+# 的入口根本不在它声称的地区（多半在美西中转），你连它反而要绕太平洋 —— 直接剔除。
+US_LOWER_BOUND = {"US": 15, "CA": 20, "JP": 110, "KR": 120, "HK": 145, "TW": 150,
+                  "SG": 165, "GB": 85, "DE": 90, "NL": 90, "FR": 95, "RU": 130}
 
 
 def region_of(cc):
@@ -1575,6 +1579,29 @@ def main():
                 info["tier"] = "full"
                 promoted += 1
         log("  亚太放宽（≤%dms）: 收回 %d 个港澳台日韩新节点" % (args.max_delay_asia, promoted))
+
+    # 假地区检测：机房实测 RTT 远低于该地区物理下界，说明入口根本不在声称的地区
+    # （常见于“香港节点 30ms”这种漂亮数字，实际走美西中转，你连上去最慢）。
+    suspects = []
+    for p in candidates:
+        info = verified.get(p["__id"])
+        if not info:
+            continue
+        cc = geo.get(str(p.get("server")), {}).get("cc") or "??"
+        lb = US_LOWER_BOUND.get(cc)
+        if lb and info.get("google") and info["google"] < lb * 0.7:
+            suspects.append((p, info.get("google"), cc))
+    if suspects:
+        ids = {p["__id"] for p, _ms, _cc in suspects}
+        for p in suspects:
+            verified.pop(p[0]["__id"], None)
+        candidates = [p for p in candidates if p["__id"] not in ids]
+        log("  假地区检测：剔除 %d 个（机房 RTT < 该地区下界×0.7，入口不在声称地区）"
+            % len(suspects))
+        for p, ms, cc in suspects[:5]:
+            log("    - %-18s 机房 %sms  下界 %sms  server=%s"
+                % (str(p.get("name", "?"))[:18], ms, US_LOWER_BOUND.get(cc),
+                   str(p.get("server"))[:30]))
 
     # ---- 第 7 步：上海探针实测，用“上海 -> 节点”的延迟重判 ----
     cn_hit, cn_miss, cn_unmeasured = 0, 0, 0
