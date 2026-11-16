@@ -64,15 +64,16 @@ jobs:
           else
             OUT_ARGS="--out out/flclash-free-nodes.yaml"
           fi
-          # 策略：先按地区/协议筛选，再用真实代理链路做并发压测（等价 clash-speedtest 的 download+并发），
-          #       砍掉“连不上”和“抖动大”的；globalping 上海探针已默认关闭（与真实体验相关性差）。
-          # --cn-types ss,trojan : 只保留 ss/trojan（实测国内：reality 0%、ws/CDN 前缀 0%、ss/trojan 约 20%）
+          # 策略：地区筛选 + 真实代理链路并发压测（等价 clash-speedtest 的 download+并发），
+          #       砍掉“连不上”和“抖动大”的。不再按协议类型硬过滤 ——
+          #       实测 http 类型的节点可以只有 61ms、vless 也有能用的，按类型排除会误杀。
+          # --cn-types ""        : 不限协议（曾经用 ss,trojan，实测误杀了 http/vless）
           # --cn-region asia_na  : 只保留 日/新/韩/台/港 + 美/加（归属未知的也留），其余剔除
-          # --max-delay 200      : 机房实测延迟上限
+          # --max-delay 3000     : 机房延迟只做粗筛（机房侧绕路时能到 2238ms，但国内实测 222ms）
           # --burst 6            : 每个节点同时开 6 条连接压测，成功率 ≥80%、抖动 ≤150ms 才算过
           python -u scripts/pipeline.py --workers 128 --rounds 2 --timeout 3000 \
-            --cn-types ss,trojan --cn-region asia_na --max-delay 200 \
-            --burst 6 --burst-min-ok 0.8 --burst-jitter 150 \
+            --cn-types "" --cn-region asia_na --max-delay 3000 \
+            --burst 6 --burst-min-ok 0.8 --burst-jitter 300 \
             --min-nodes 3 \
             --second-out out/flclash-broad.yaml \
             --second-regions HK,TW,JP,KR,SG,CA $OUT_ARGS 2>&1 | tee pipeline.log
