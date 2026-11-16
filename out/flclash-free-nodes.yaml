@@ -1,9 +1,8 @@
 # FLClash / Mihomo 订阅 — 免费公共节点
-# 生成时间: 2026-11-16 01:17 (UTC+0000)   节点: 12
+# 生成时间: 2026-11-16 06:01 (UTC+0000)   节点: 32
 # 数据来源: GitHub 上每日更新的公开免费节点库，合并去重后逐个实测：
 #   ① 谷歌 (www.google.com/generate_204) 与 YouTube (www.youtube.com) 都能真打开；
-#   ② 上海探针（globalping.io）实测“上海 → 节点”RTT ≤ 120ms，节点名里的数字就是上海延迟。
-#   其中 1 个是上一版保留的老节点（复测后上海 RTT ≤ 150ms 才留，排在最前）
+#   ② 机房实测延迟 ≤ 200ms，并通过 6 并发压测（成功率≥80%、抖动≤150ms）；节点名里的数字是机房延迟。
 # 本文件由 GitHub Actions 自动生成，请勿手工修改
 
 mixed-port: 7890
@@ -61,176 +60,229 @@ dns:
       - "https://1.12.12.12/dns-query"
 proxies:
 -
-  server: 8.217.1.203
-  port: 8443
-  type: vless
-  uuid: 8b17beac-b143-447d-aa68-14cbb121a602
-  tls: true
-  flow: xtls-rprx-vision
-  reality-opts:
-    public-key: 74P0QFvaK6B13rHsxR_t0lqRlg4YLuORD4VaHr5Jd38
-    short-id: 0bf55f64
-  servername: www.apple.com
-  client-fingerprint: chrome
-  network: tcp
-  udp: true
-  name: 🇭🇰 HK-01 · 6ms
+  name: 🇺🇸 US-01 · 42ms
+  server: 193.151.163.18
+  port: 19999
+  type: ss
+  cipher: aes-256-gcm
+  password: "ZRpgaBeGxtENIXgvhpkZBKz9GnWRS2dYcx9O+a2iwN4="
 -
-  type: vless
-  name: 🇯🇵 JP-01 · 5ms
-  server: zfapi.zalolink.com
-  port: 54528
-  uuid: 57beeeb0-03fc-4fc9-94da-7604488a7134
-  flow: xtls-rprx-vision
-  udp: true
-  tls: true
-  servername: www.apple.com
-  sni: www.apple.com
-  skip-cert-verify: true
-  client-fingerprint: ios
-  reality-opts:
-    public-key: 7GvJVbR6BRhtrc8-rcZvB8qTFUF1LPeM_MmoZ04mBxo
-    short-id: 54cca3c1c1c7
--
-  name: 🇺🇸 US-01 · 6ms
-  server: 162.35.101.168
-  port: 44333
-  type: vless
-  uuid: 256eab05-abfc-4747-8671-01e92fb95192
-  tls: true
-  flow: xtls-rprx-vision
-  reality-opts:
-    public-key: vhtQBb9x0bXClfNSSGals7dBBUEDZ7PuW0sllAsyzDM
-    short-id: a1b2c3d4
-  servername: www.apple.com
-  client-fingerprint: chrome
-  network: tcp
--
-  type: vless
-  name: 🇯🇵 JP-02 · 28ms
-  server: zfapi.zalolink.com
-  port: 43149
-  uuid: 57beeeb0-03fc-4fc9-94da-7604488a7134
-  flow: xtls-rprx-vision
-  tls: true
-  servername: psstatic.cdn.bcebos.com
-  sni: psstatic.cdn.bcebos.com
-  skip-cert-verify: false
-  client-fingerprint: firefox
-  reality-opts:
-    public-key: cvong7paE8XIzzbKWgV5iUruP1pBqI2IhMuBHc8c0UE
-    short-id: 15aa0ad4
--
-  name: 🇯🇵 JP-03 · 28ms
-  server: zfapi.zalolink.com
-  port: 43149
-  type: vless
-  uuid: 57beeeb0-03fc-4fc9-94da-7604488a7134
-  tls: true
-  flow: xtls-rprx-vision
-  reality-opts:
-    public-key: cvong7paE8XIzzbKWgV5iUruP1pBqI2IhMuBHc8c0UE
-    short-id: 15aa0ad4
-  servername: psstatic.cdn.bcebos.com
-  client-fingerprint: firefox
-  network: tcp
-  udp: true
--
-  name: 🇨🇦 CA-01 · 41ms
-  password: "null"
+  name: 🇺🇸 US-02 · 46ms
+  server: 198.98.53.130
   port: 443
-  server: 172.64.68.89
-  skip-cert-verify: true
-  tls: true
-  type: http
-  username: "null"
+  type: ss
+  cipher: chacha20-ietf-poly1305
+  password: eDfN7SODQceIOmIAbtJJtK
 -
-  name: 🇨🇦 CA-02 · 43ms
-  type: vless
-  network: ws
-  server: 104.20.63.254
-  port: 443
-  uuid: cd3d8e5c-794f-4c34-8222-59d3e99e35fe
-  servername: joeypg.ezbiz.dynv6.net
-  skip-cert-verify: true
-  tls: true
-  udp: true
-  tfo: false
-  ws-opts:
-    headers:
-      Host: joeypg.ezbiz.dynv6.net
-    path: "/?ed=2048"
+  name: 🇺🇸 US-03 · 54ms
+  server: 45.86.51.18
+  port: 19999
+  type: ss
+  cipher: aes-256-gcm
+  password: "ZRpgaBeGxtENIXgvhpkZBKz9GnWRS2dYcx9O+a2iwN4="
 -
-  name: 🇸🇬 SG-01 · 50ms
-  obfs: salamander
-  obfs-password: 309502c4a8df10b46fb976d4a8c43f42
-  password: d042d150716709bb778cc73889cddb02
-  port: 443
-  server: 138.2.89.249
-  skip-cert-verify: true
-  sni: www.bing.com
-  tls: false
-  type: hysteria2
+  name: 🇺🇸 US-04 · 54ms
+  server: 185.230.230.18
+  port: 19999
+  type: ss
+  cipher: aes-256-gcm
+  password: "ZRpgaBeGxtENIXgvhpkZBKz9GnWRS2dYcx9O+a2iwN4="
 -
-  name: 🇹🇼 TW-01 · 68ms
-  server: usa1.gosthk.site
-  port: 443
-  type: anytls
-  password: 46f2efeb-4c5f-42d6-bf9d-558b8c907128
-  udp: true
-  sni: usa1.gosthk.site
-  skip-cert-verify: true
+  name: 🇺🇸 US-05 · 58ms
+  server: 38.91.100.39
+  port: 19999
+  type: ss
+  cipher: aes-256-gcm
+  password: "ZRpgaBeGxtENIXgvhpkZBKz9GnWRS2dYcx9O+a2iwN4="
 -
-  client-fingerprint: chrome
-  name: 🇺🇸 US-02 · 87ms
-  network: xhttp
-  port: 443
-  server: 151.101.36.128
-  servername: accounts.fastly.com
-  tls: true
-  type: vless
-  udp: true
-  uuid: ad9a885d-93bb-48e3-9937-57f1116b64e3
-  xhttp-opts:
-    host: ovd7.global.ssl.fastly.net
-    mode: auto
-    no-grpc-header: true
-    path: /
-    x-padding-bytes: 100-1000
+  name: 🇺🇸 US-06 · 63ms
+  server: 172.111.38.72
+  port: 19999
+  type: ss
+  cipher: aes-256-gcm
+  password: "ZRpgaBeGxtENIXgvhpkZBKz9GnWRS2dYcx9O+a2iwN4="
 -
-  name: 🇺🇸 US-03 · 91ms
-  type: vless
-  network: xhttp
-  server: 151.101.36.227
-  port: 443
-  uuid: ad9a885d-93bb-48e3-9937-57f1116b64e3
-  servername: accounts.fastly.com
-  tls: true
-  udp: true
-  client-fingerprint: chrome
-  xhttp-opts:
-    host: oh1.global.ssl.fastly.net
-    mode: auto
-    no-grpc-header: true
-    path: /
-    x-padding-bytes: 100-1000
+  name: 🇺🇸 US-07 · 65ms
+  server: 149.40.57.133
+  port: 19999
+  type: ss
+  cipher: aes-256-gcm
+  password: "ZRpgaBeGxtENIXgvhpkZBKz9GnWRS2dYcx9O+a2iwN4="
 -
-  client-fingerprint: chrome
-  name: 🇺🇸 US-04 · 92ms
-  network: xhttp
+  name: 🇺🇸 US-08 · 68ms
+  server: 149.40.57.138
+  port: 19999
+  type: ss
+  cipher: aes-256-gcm
+  password: "ZRpgaBeGxtENIXgvhpkZBKz9GnWRS2dYcx9O+a2iwN4="
+-
+  name: 🇺🇸 US-09 · 69ms
+  server: 149.40.57.134
+  port: 19999
+  type: ss
+  cipher: aes-256-gcm
+  password: "ZRpgaBeGxtENIXgvhpkZBKz9GnWRS2dYcx9O+a2iwN4="
+-
+  cipher: aes-256-gcm
+  name: 🇨🇦 CA-01 · 78ms
+  password: kDWvXYZoTBcGkC4
+  port: 8882
+  server: 51.222.136.236
+  type: ss
+-
+  name: 🇺🇸 US-10 · 83ms
+  server: 193.151.160.18
+  port: 19999
+  type: ss
+  cipher: aes-256-gcm
+  password: "ZRpgaBeGxtENIXgvhpkZBKz9GnWRS2dYcx9O+a2iwN4="
+-
+  name: 🇺🇸 US-11 · 84ms
+  server: 38.121.43.18
+  port: 19999
+  type: ss
+  cipher: aes-256-gcm
+  password: "ZRpgaBeGxtENIXgvhpkZBKz9GnWRS2dYcx9O+a2iwN4="
+-
+  name: 🇺🇸 US-12 · 85ms
+  server: 193.151.160.9
+  port: 19999
+  type: ss
+  cipher: aes-256-gcm
+  password: "ZRpgaBeGxtENIXgvhpkZBKz9GnWRS2dYcx9O+a2iwN4="
+-
+  name: 🇺🇸 US-13 · 89ms
+  server: 38.121.43.231
+  port: 19999
+  type: ss
+  cipher: aes-256-gcm
+  password: "ZRpgaBeGxtENIXgvhpkZBKz9GnWRS2dYcx9O+a2iwN4="
+-
+  name: 🇺🇸 US-14 · 90ms
+  server: 172.111.36.123
+  port: 19999
+  type: ss
+  cipher: aes-256-gcm
+  password: "ZRpgaBeGxtENIXgvhpkZBKz9GnWRS2dYcx9O+a2iwN4="
+-
+  name: 🇺🇸 US-15 · 96ms
+  server: 38.121.43.225
+  port: 19999
+  type: ss
+  cipher: aes-256-gcm
+  password: "ZRpgaBeGxtENIXgvhpkZBKz9GnWRS2dYcx9O+a2iwN4="
+-
+  name: 🇨🇦 CA-02 · 98ms
+  server: 15.235.57.6
+  port: 8080
+  type: ss
+  cipher: chacha20-ietf-poly1305
+  password: kxhnt5jtykd328cg
+-
+  name: 🇺🇸 US-16 · 100ms
+  server: 167.88.62.203
+  port: 19999
+  type: ss
+  cipher: aes-256-gcm
+  password: "ZRpgaBeGxtENIXgvhpkZBKz9GnWRS2dYcx9O+a2iwN4="
+-
+  name: 🇺🇸 US-17 · 101ms
+  server: 38.22.17.129
+  port: 19999
+  type: ss
+  cipher: aes-256-gcm
+  password: "ZRpgaBeGxtENIXgvhpkZBKz9GnWRS2dYcx9O+a2iwN4="
+-
+  name: 🇺🇸 US-18 · 101ms
+  server: 38.22.17.219
+  port: 19999
+  type: ss
+  cipher: aes-256-gcm
+  password: "ZRpgaBeGxtENIXgvhpkZBKz9GnWRS2dYcx9O+a2iwN4="
+-
+  cipher: aes-256-gcm
+  name: 🇨🇦 CA-03 · 102ms
+  password: zDNVedRFPQexG9v
+  port: 445
+  server: 51.222.141.125
+  type: ss
+-
+  name: 🇺🇸 US-19 · 102ms
+  server: 162.251.62.31
+  port: 19999
+  type: ss
+  cipher: aes-256-gcm
+  password: "ZRpgaBeGxtENIXgvhpkZBKz9GnWRS2dYcx9O+a2iwN4="
+-
+  name: 🇺🇸 US-20 · 105ms
+  server: 167.88.63.99
+  port: 19999
+  type: ss
+  cipher: aes-256-gcm
+  password: "ZRpgaBeGxtENIXgvhpkZBKz9GnWRS2dYcx9O+a2iwN4="
+-
+  name: 🇺🇸 US-21 · 107ms
+  server: 216.106.178.169
+  port: 19999
+  type: ss
+  cipher: aes-256-gcm
+  password: "ZRpgaBeGxtENIXgvhpkZBKz9GnWRS2dYcx9O+a2iwN4="
+-
+  name: 🇺🇸 US-22 · 109ms
+  server: 156.146.38.167
   port: 443
-  server: 151.101.36.2
-  servername: accounts.fastly.com
-  tls: true
-  type: vless
-  udp: true
-  uuid: ad9a885d-93bb-48e3-9937-57f1116b64e3
-  xhttp-opts:
-    host: oh4.global.ssl.fastly.net
-    mode: auto
-    no-grpc-header: true
-    path: /
-    x-padding-bytes: 100-1000
+  type: ss
+  cipher: aes-128-gcm
+  password: shadowsocks
+-
+  name: 🇺🇸 US-23 · 113ms
+  server: 38.91.107.188
+  port: 19999
+  type: ss
+  cipher: aes-256-gcm
+  password: "ZRpgaBeGxtENIXgvhpkZBKz9GnWRS2dYcx9O+a2iwN4="
+-
+  name: 🇺🇸 US-24 · 116ms
+  server: 38.128.66.32
+  port: 19999
+  type: ss
+  cipher: aes-256-gcm
+  password: "ZRpgaBeGxtENIXgvhpkZBKz9GnWRS2dYcx9O+a2iwN4="
+-
+  name: 🇺🇸 US-25 · 117ms
+  server: 156.146.38.168
+  port: 443
+  type: ss
+  cipher: aes-128-gcm
+  password: shadowsocks
+-
+  name: 🇺🇸 US-26 · 128ms
+  server: 156.146.38.169
+  port: 443
+  type: ss
+  cipher: aes-128-gcm
+  password: shadowsocks
+-
+  name: 🇺🇸 US-27 · 135ms
+  server: 156.146.38.170
+  port: 443
+  type: ss
+  cipher: aes-128-gcm
+  password: shadowsocks
+-
+  cipher: aes-256-gcm
+  name: 🇨🇦 CA-04 · 141ms
+  password: cdBIDV42DCwnfIN
+  port: 8119
+  server: 51.79.64.198
+  type: ss
+-
+  name: 🇺🇸 US-28 · 198ms
+  server: 95.215.201.18
+  port: 19999
+  type: ss
+  cipher: aes-256-gcm
+  password: "ZRpgaBeGxtENIXgvhpkZBKz9GnWRS2dYcx9O+a2iwN4="
 proxy-groups:
 -
   name: 🚀 节点选择
@@ -238,25 +290,41 @@ proxy-groups:
   proxies:
     - ♻️ 自动选择
     - 🔯 故障转移
-    - 🇭🇰 香港
-    - 🇹🇼 台湾
-    - 🇯🇵 日本
-    - 🇸🇬 新加坡
     - 🇺🇸 美国
     - 🌍 其他
     - 🎯 全球直连
-    - 🇭🇰 HK-01 · 6ms
-    - 🇯🇵 JP-01 · 5ms
-    - 🇺🇸 US-01 · 6ms
-    - 🇯🇵 JP-02 · 28ms
-    - 🇯🇵 JP-03 · 28ms
-    - 🇨🇦 CA-01 · 41ms
-    - 🇨🇦 CA-02 · 43ms
-    - 🇸🇬 SG-01 · 50ms
-    - 🇹🇼 TW-01 · 68ms
-    - 🇺🇸 US-02 · 87ms
-    - 🇺🇸 US-03 · 91ms
-    - 🇺🇸 US-04 · 92ms
+    - 🇺🇸 US-01 · 42ms
+    - 🇺🇸 US-02 · 46ms
+    - 🇺🇸 US-03 · 54ms
+    - 🇺🇸 US-04 · 54ms
+    - 🇺🇸 US-05 · 58ms
+    - 🇺🇸 US-06 · 63ms
+    - 🇺🇸 US-07 · 65ms
+    - 🇺🇸 US-08 · 68ms
+    - 🇺🇸 US-09 · 69ms
+    - 🇨🇦 CA-01 · 78ms
+    - 🇺🇸 US-10 · 83ms
+    - 🇺🇸 US-11 · 84ms
+    - 🇺🇸 US-12 · 85ms
+    - 🇺🇸 US-13 · 89ms
+    - 🇺🇸 US-14 · 90ms
+    - 🇺🇸 US-15 · 96ms
+    - 🇨🇦 CA-02 · 98ms
+    - 🇺🇸 US-16 · 100ms
+    - 🇺🇸 US-17 · 101ms
+    - 🇺🇸 US-18 · 101ms
+    - 🇨🇦 CA-03 · 102ms
+    - 🇺🇸 US-19 · 102ms
+    - 🇺🇸 US-20 · 105ms
+    - 🇺🇸 US-21 · 107ms
+    - 🇺🇸 US-22 · 109ms
+    - 🇺🇸 US-23 · 113ms
+    - 🇺🇸 US-24 · 116ms
+    - 🇺🇸 US-25 · 117ms
+    - 🇺🇸 US-26 · 128ms
+    - 🇺🇸 US-27 · 135ms
+    - 🇨🇦 CA-04 · 141ms
+    - 🇺🇸 US-28 · 198ms
 -
   name: ♻️ 自动选择
   type: url-test
@@ -265,70 +333,64 @@ proxy-groups:
   tolerance: 50
   lazy: false
   proxies:
-    - 🇭🇰 HK-01 · 6ms
-    - 🇯🇵 JP-01 · 5ms
-    - 🇺🇸 US-01 · 6ms
-    - 🇯🇵 JP-02 · 28ms
-    - 🇯🇵 JP-03 · 28ms
-    - 🇨🇦 CA-01 · 41ms
-    - 🇨🇦 CA-02 · 43ms
-    - 🇸🇬 SG-01 · 50ms
-    - 🇹🇼 TW-01 · 68ms
-    - 🇺🇸 US-02 · 87ms
-    - 🇺🇸 US-03 · 91ms
-    - 🇺🇸 US-04 · 92ms
+    - 🇺🇸 US-01 · 42ms
+    - 🇺🇸 US-02 · 46ms
+    - 🇺🇸 US-03 · 54ms
+    - 🇺🇸 US-04 · 54ms
+    - 🇺🇸 US-05 · 58ms
+    - 🇺🇸 US-06 · 63ms
+    - 🇺🇸 US-07 · 65ms
+    - 🇺🇸 US-08 · 68ms
+    - 🇺🇸 US-09 · 69ms
+    - 🇨🇦 CA-01 · 78ms
+    - 🇺🇸 US-10 · 83ms
+    - 🇺🇸 US-11 · 84ms
+    - 🇺🇸 US-12 · 85ms
+    - 🇺🇸 US-13 · 89ms
+    - 🇺🇸 US-14 · 90ms
+    - 🇺🇸 US-15 · 96ms
+    - 🇨🇦 CA-02 · 98ms
+    - 🇺🇸 US-16 · 100ms
+    - 🇺🇸 US-17 · 101ms
+    - 🇺🇸 US-18 · 101ms
+    - 🇨🇦 CA-03 · 102ms
+    - 🇺🇸 US-19 · 102ms
+    - 🇺🇸 US-20 · 105ms
+    - 🇺🇸 US-21 · 107ms
+    - 🇺🇸 US-22 · 109ms
+    - 🇺🇸 US-23 · 113ms
+    - 🇺🇸 US-24 · 116ms
+    - 🇺🇸 US-25 · 117ms
+    - 🇺🇸 US-26 · 128ms
+    - 🇺🇸 US-27 · 135ms
+    - 🇨🇦 CA-04 · 141ms
+    - 🇺🇸 US-28 · 198ms
 -
   name: 🔯 故障转移
   type: fallback
   url: "https://www.gstatic.com/generate_204"
   interval: 300
   proxies:
-    - 🇭🇰 HK-01 · 6ms
-    - 🇯🇵 JP-01 · 5ms
-    - 🇺🇸 US-01 · 6ms
-    - 🇯🇵 JP-02 · 28ms
-    - 🇯🇵 JP-03 · 28ms
-    - 🇨🇦 CA-01 · 41ms
-    - 🇨🇦 CA-02 · 43ms
-    - 🇸🇬 SG-01 · 50ms
-    - 🇹🇼 TW-01 · 68ms
-    - 🇺🇸 US-02 · 87ms
-    - 🇺🇸 US-03 · 91ms
-    - 🇺🇸 US-04 · 92ms
--
-  name: 🇭🇰 香港
-  type: url-test
-  url: "https://www.gstatic.com/generate_204"
-  interval: 300
-  tolerance: 50
-  proxies:
-    - 🇭🇰 HK-01 · 6ms
--
-  name: 🇹🇼 台湾
-  type: url-test
-  url: "https://www.gstatic.com/generate_204"
-  interval: 300
-  tolerance: 50
-  proxies:
-    - 🇹🇼 TW-01 · 68ms
--
-  name: 🇯🇵 日本
-  type: url-test
-  url: "https://www.gstatic.com/generate_204"
-  interval: 300
-  tolerance: 50
-  proxies:
-    - 🇯🇵 JP-01 · 5ms
-    - 🇯🇵 JP-02 · 28ms
-    - 🇯🇵 JP-03 · 28ms
--
-  name: 🇸🇬 新加坡
-  type: url-test
-  url: "https://www.gstatic.com/generate_204"
-  interval: 300
-  tolerance: 50
-  proxies:
-    - 🇸🇬 SG-01 · 50ms
+    - 🇺🇸 US-01 · 42ms
+    - 🇺🇸 US-02 · 46ms
+    - 🇺🇸 US-03 · 54ms
+    - 🇺🇸 US-04 · 54ms
+    - 🇺🇸 US-05 · 58ms
+    - 🇺🇸 US-06 · 63ms
+    - 🇺🇸 US-07 · 65ms
+    - 🇺🇸 US-08 · 68ms
+    - 🇺🇸 US-09 · 69ms
+    - 🇨🇦 CA-01 · 78ms
+    - 🇺🇸 US-10 · 83ms
+    - 🇺🇸 US-11 · 84ms
+    - 🇺🇸 US-12 · 85ms
+    - 🇺🇸 US-13 · 89ms
+    - 🇺🇸 US-14 · 90ms
+    - 🇺🇸 US-15 · 96ms
+    - 🇨🇦 CA-02 · 98ms
+    - 🇺🇸 US-16 · 100ms
+    - 🇺🇸 US-17 · 101ms
+    - 🇺🇸 US-18 · 101ms
 -
   name: 🇺🇸 美国
   type: url-test
@@ -336,10 +398,34 @@ proxy-groups:
   interval: 300
   tolerance: 50
   proxies:
-    - 🇺🇸 US-01 · 6ms
-    - 🇺🇸 US-02 · 87ms
-    - 🇺🇸 US-03 · 91ms
-    - 🇺🇸 US-04 · 92ms
+    - 🇺🇸 US-01 · 42ms
+    - 🇺🇸 US-02 · 46ms
+    - 🇺🇸 US-03 · 54ms
+    - 🇺🇸 US-04 · 54ms
+    - 🇺🇸 US-05 · 58ms
+    - 🇺🇸 US-06 · 63ms
+    - 🇺🇸 US-07 · 65ms
+    - 🇺🇸 US-08 · 68ms
+    - 🇺🇸 US-09 · 69ms
+    - 🇺🇸 US-10 · 83ms
+    - 🇺🇸 US-11 · 84ms
+    - 🇺🇸 US-12 · 85ms
+    - 🇺🇸 US-13 · 89ms
+    - 🇺🇸 US-14 · 90ms
+    - 🇺🇸 US-15 · 96ms
+    - 🇺🇸 US-16 · 100ms
+    - 🇺🇸 US-17 · 101ms
+    - 🇺🇸 US-18 · 101ms
+    - 🇺🇸 US-19 · 102ms
+    - 🇺🇸 US-20 · 105ms
+    - 🇺🇸 US-21 · 107ms
+    - 🇺🇸 US-22 · 109ms
+    - 🇺🇸 US-23 · 113ms
+    - 🇺🇸 US-24 · 116ms
+    - 🇺🇸 US-25 · 117ms
+    - 🇺🇸 US-26 · 128ms
+    - 🇺🇸 US-27 · 135ms
+    - 🇺🇸 US-28 · 198ms
 -
   name: 🌍 其他
   type: url-test
@@ -347,8 +433,10 @@ proxy-groups:
   interval: 300
   tolerance: 50
   proxies:
-    - 🇨🇦 CA-01 · 41ms
-    - 🇨🇦 CA-02 · 43ms
+    - 🇨🇦 CA-01 · 78ms
+    - 🇨🇦 CA-02 · 98ms
+    - 🇨🇦 CA-03 · 102ms
+    - 🇨🇦 CA-04 · 141ms
 -
   name: 🎯 全球直连
   type: select
