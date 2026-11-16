@@ -669,6 +669,66 @@ def _verify_chunk(exe, chunk, workdir, workers, rounds, timeout_ms):
     return rows, ""
 
 
+def stress_test(exe, proxies, workdir, workers, burst, timeout_ms, min_ok_ratio, jitter_ms):
+    """并发压测：每个节点同时开 burst 条连接跑真实请求，砍掉“单连正常、并发就废”的节点。
+
+    这正是免费节点最常见的坑：服务端限制单 IP 并发连接数，单线程测一切正常，
+    浏览器一开十几个连接就掉速甚至超时。返回 {__id: {"ok","n","p50","p95","jitter","pass"}}。"""
+    if not proxies:
+        return {}
+    want = len(proxies) + 1
+    ports = _verify_ports(want)
+    reject_port = ports.pop() if ports else free_port()
+    if len(ports) < len(proxies):
+        proxies = proxies[:len(ports)]
+    mixed, ctl = port_pair()
+    cfg = os.path.join(workdir, "stress_config.yaml")
+    write_verify_config(cfg, proxies, ctl, ports, mixed, reject_port)
+    proc = start_core(exe, cfg, workdir, ctl, os.path.join(workdir, "core-stress.log"))
+    out = {}
+    try:
+        ok, _code, _ms, _err = http_probe(reject_port, "google", min(timeout_ms, 5000))
+        if ok:
+            return {"__fatal__": "内核对 listeners.proxy 支持异常"}
+
+        def one(port):
+            with ThreadPoolExecutor(max_workers=burst) as ex:
+                futs = [ex.submit(http_probe, port, "google", timeout_ms) for _ in range(burst)]
+                res = [f.result() for f in futs]
+            good = [ms for ok2, _c, ms, _e in res if ok2]
+            good.sort()
+            if not good:
+                return {"ok": 0, "n": burst, "p50": None, "p95": None, "jitter": None, "pass": False}
+            p50 = good[len(good) // 2]
+            p95 = good[max(0, int(len(good) * 0.95) - 1)]
+            jitter = good[-1] - good[0]
+            passed = (len(good) >= max(1, int(burst * min_ok_ratio))
+                      and jitter <= jitter_ms)
+            return {"ok": len(good), "n": burst, "p50": p50, "p95": p95,
+                    "jitter": jitter, "pass": passed}
+
+        t0 = time.time()
+        done = 0
+        with ThreadPoolExecutor(max_workers=max(1, workers)) as ex:
+            futs = {ex.submit(one, port): p["__id"] for p, port in zip(proxies, ports)}
+            for f in as_completed(futs):
+                out[futs[f]] = f.result()
+                done += 1
+                if done % 25 == 0:
+                    log("    压测 %d/%d  通过 %d  %.0fs"
+                        % (done, len(proxies), sum(1 for v in out.values() if v.get("pass")),
+                           time.time() - t0))
+        log("  并发压测完成 %.0fs：%d/%d 个扛住了 %d 并发"
+            % (time.time() - t0, sum(1 for v in out.values() if v.get("pass")), len(out), burst))
+    finally:
+        proc.terminate()
+        try:
+            proc.wait(timeout=10)
+        except Exception:  # noqa: BLE001
+            proc.kill()
+    return out
+
+
 def verify_sites(exe, proxies, workdir, workers, rounds, timeout_ms, max_delay, min_hits):
     """严格验证：谷歌 204 + YouTube 200 都得真拿到，且延迟 ≤ max_delay。
 
@@ -1183,7 +1243,8 @@ def build(nodes, geo, out_path, workers_note, selfhost=None, public_path=None):
             "#   ① 谷歌 (www.google.com/generate_204) 与 YouTube (www.youtube.com) 都能真打开；",
             ("#   ② 上海探针（globalping.io）实测“上海 → 节点”RTT ≤ %dms，节点名里的数字就是上海延迟。"
              % DELAY_GATE_CN) if DELAY_GATE_CN else
-            ("#   ② 机房实测延迟 ≤ %dms（未启用上海探针）" % DELAY_GATE),
+            ("#   ② 机房实测延迟 ≤ %dms，并通过 %d 并发压测（成功率≥%.0f%%、抖动≤%dms）；"
+             "节点名里的数字是机房延迟。" % (DELAY_GATE, BURST_N, BURST_MIN_OK * 100, BURST_JITTER)),
             "# 本文件由 GitHub Actions 自动生成，请勿手工修改",
         ]
         if DELAY_GATE_ASIA and not DELAY_GATE_CN:
@@ -1193,8 +1254,9 @@ def build(nodes, geo, out_path, workers_note, selfhost=None, public_path=None):
         n_carry = sum(1 for it in items if it["carry"])
         if n_carry:
             lines.insert(len(lines) - 1,
-                         "#   其中 %d 个是上一版保留的老节点（复测后上海 RTT ≤ %dms 才留，排在最前）"
-                         % (n_carry, CARRY_GATE))
+                         ("#   其中 %d 个是上一版留下的老节点（复测后上海 RTT ≤ %dms 才留，排在最前）"
+                          % (n_carry, CARRY_GATE)) if DELAY_GATE_CN else
+                         ("#   其中 %d 个是上一版留下的老节点（本轮复测仍然可用，排在最前）" % n_carry))
         if sh:
             lines.append("# ⚠️ 本文件含自建节点密钥，请勿公开（仅用于私有 Gist）")
         lines.append("")
@@ -1292,6 +1354,9 @@ DELAY_GATE = 200      # 机房延迟门槛（ms），由 main() 按 --max-delay 
 DELAY_GATE_ASIA = 0   # 亚太单独门槛，由 main() 按 --max-delay-asia 覆盖
 DELAY_GATE_CN = 0     # 上海探针门槛，由 main() 按 --cn-max-delay 覆盖（>0 表示用了上海探针）
 CARRY_GATE = 150      # 老选手（上一版保留）的上海门槛，由 main() 按 --carry-max-delay 覆盖
+BURST_N = 6           # 并发压测连接数，由 main() 按 --burst 覆盖（仅用于写配置注释）
+BURST_MIN_OK = 0.8
+BURST_JITTER = 150
 
 # mihomo 校验 GEOSITE/GEOIP 规则时需要地理库；默认会自己去 GitHub 下载，
 # 一旦下载失败整个配置校验就失败 —— 所以这里先带镜像把它预置好。
@@ -1386,8 +1451,15 @@ def main():
     ap.add_argument("--max-delay-asia", type=int, default=0,
                     help="亚太节点（港澳台日韩新）单独放宽到 N ms，0=不区分。"
                          "仅在关闭上海探针（--no-cn-check）或探针拿不到数据时起兜底作用")
-    ap.add_argument("--no-cn-check", dest="cn_check", action="store_false",
-                    help="关闭上海探针实测（默认开启）")
+    ap.add_argument("--cn-check", dest="cn_check", action="store_true",
+                    help="启用 globalping 上海探针实测（**默认关闭**：实测它与真实体验相关性差，"
+                         "改用下面的并发压测 + 地区/协议筛选）")
+    ap.add_argument("--burst", type=int, default=6,
+                    help="并发压测：每个节点同时开几条连接（0=关闭），默认 6")
+    ap.add_argument("--burst-min-ok", type=float, default=0.8,
+                    help="并发压测要求的最小成功率（0~1），默认 0.8")
+    ap.add_argument("--burst-jitter", type=int, default=150,
+                    help="并发压测允许的最大抖动（最慢-最快，毫秒），默认 150")
     ap.add_argument("--cn-city", default="Shanghai",
                     help="国内探针城市，默认 Shanghai（globalping 的国内探针城市）")
     ap.add_argument("--cn-max-delay", type=int, default=120,
@@ -1433,6 +1505,7 @@ def main():
                     help="另存一份不含自建节点的配置，供公开仓库提交")
     args = ap.parse_args()
     global nodes_delay, DELAY_GATE, DELAY_GATE_ASIA, DELAY_GATE_CN, CARRY_GATE
+    global BURST_N, BURST_MIN_OK, BURST_JITTER
 
     t_all = time.time()
     os.makedirs(CACHE, exist_ok=True)
@@ -1449,6 +1522,7 @@ def main():
     prev_path = args.public_out or args.out
     prev = [] if args.no_carry else load_previous(prev_path, args.carry_limit)
     CARRY_GATE = args.carry_max_delay
+    BURST_N, BURST_MIN_OK, BURST_JITTER = args.burst, args.burst_min_ok, args.burst_jitter
     log("[1/9] 复测上一版订阅（老节点优先）")
     if args.no_carry:
         log("  已用 --no-carry 关闭")
@@ -1603,6 +1677,60 @@ def main():
                 % (str(p.get("name", "?"))[:18], ms, US_LOWER_BOUND.get(cc),
                    str(p.get("server"))[:30]))
 
+    # 地区筛选：默认只留 日/新/韩/台/港 + 美/加，其余直接剔除，不浪费探针额度。
+    # 额度不够时按「亚太 > 加拿大 > 美国 > 其他」的顺序优先测（用户要求：超容量优先加拿大）。
+    probe_pool = candidates
+    if args.cn_region in ("asia_na", "asia", "auto"):
+        if args.cn_region == "asia_na":
+            keep = ASIA_STRICT | {"CA", "US", "??"}   # 归属查不到的也留着，别误杀
+        elif args.cn_region == "asia":
+            keep = ASIA_STRICT | {"??"}
+        else:
+            keep = ASIA_STRICT | {"MO", "??"}
+        probe_pool = [p for p in candidates
+                      if (geo.get(str(p.get("server")), {}).get("cc") or "??") in keep]
+        # 优先级：亚太 0 > 加拿大 1 > 美国 2 > 其他 3（稳定排序，组内保持原顺序）
+        probe_pool.sort(key=lambda p: REGION_PRIORITY.get(
+            geo.get(str(p.get("server")), {}).get("cc") or "??", 3))
+        skipped = len(candidates) - len(probe_pool)
+        mix = {}
+        for p in probe_pool:
+            cc = geo.get(str(p.get("server")), {}).get("cc") or "??"
+            mix[cc] = mix.get(cc, 0) + 1
+        top = ",".join("%s:%d" % (k, v) for k, v in sorted(mix.items(),
+                                                           key=lambda kv: -kv[1])[:8])
+        log("  地区筛选（%s）：剔除 %d 个其他地区，待测 %d 个（%s）；"
+            "预算 %d，超出时按 亚太 > 加拿大 > 美国 优先"
+            % (args.cn_region, skipped, len(probe_pool), top, args.cn_max_nodes))
+        keep_ids = {p["__id"] for p in probe_pool}
+        for p in candidates:                 # 被筛掉的也从验证结果里移除，避免统计虚高
+            if p["__id"] not in keep_ids:
+                verified.pop(p["__id"], None)
+        candidates = probe_pool
+
+    # ---- 并发压测：真实代理链路 + 多连接，先砍掉“连不上”和“抖动大”的 ----
+    if args.burst > 0 and candidates:
+        log("[压测] 每节点 %d 并发，要求成功率 ≥%.0f%%、抖动 ≤%dms"
+            % (args.burst, args.burst_min_ok * 100, args.burst_jitter))
+        st = stress_test(exe, candidates, work, min(args.workers, 32), args.burst,
+                         args.verify_timeout, args.burst_min_ok, args.burst_jitter)
+        if "__fatal__" in st:
+            annotate("并发压测无法进行：%s" % st["__fatal__"])
+            return 1
+        passed = [p for p in candidates if st.get(p["__id"], {}).get("pass")]
+        bad = len(candidates) - len(passed)
+        log("  压测通过 %d / %d（砍掉 %d 个：连不上或抖动大）"
+            % (len(passed), len(candidates), bad))
+        if passed:
+            good_ids = {p["__id"] for p in passed}
+            for p in candidates:
+                if p["__id"] not in good_ids:
+                    verified.pop(p["__id"], None)
+            candidates = passed
+        else:
+            log("  [warn] 全部没扛住并发，跳过压测结果（保留原判定）")
+
+
     # ---- 第 7 步：上海探针实测，用“上海 -> 节点”的延迟重判 ----
     cn_hit, cn_miss, cn_unmeasured = 0, 0, 0
     if args.cn_check:
@@ -1625,32 +1753,6 @@ def main():
             ok = (attempts > 0 and definite >= need
                   and infra <= max(2, attempts * 0.2))
             return hits, unreach, infra, definite, ok
-
-        # 地区筛选：默认只留 日/新/韩/台/港 + 美/加，其余直接剔除，不浪费探针额度。
-        # 额度不够时按「亚太 > 加拿大 > 美国 > 其他」的顺序优先测（用户要求：超容量优先加拿大）。
-        probe_pool = candidates
-        if args.cn_region in ("asia_na", "asia", "auto"):
-            if args.cn_region == "asia_na":
-                keep = ASIA_STRICT | {"CA", "US", "??"}   # 归属查不到的也留着，别误杀
-            elif args.cn_region == "asia":
-                keep = ASIA_STRICT | {"??"}
-            else:
-                keep = ASIA_STRICT | {"MO", "??"}
-            probe_pool = [p for p in candidates
-                          if (geo.get(str(p.get("server")), {}).get("cc") or "??") in keep]
-            # 优先级：亚太 0 > 加拿大 1 > 美国 2 > 其他 3（稳定排序，组内保持原顺序）
-            probe_pool.sort(key=lambda p: REGION_PRIORITY.get(
-                geo.get(str(p.get("server")), {}).get("cc") or "??", 3))
-            skipped = len(candidates) - len(probe_pool)
-            mix = {}
-            for p in probe_pool:
-                cc = geo.get(str(p.get("server")), {}).get("cc") or "??"
-                mix[cc] = mix.get(cc, 0) + 1
-            top = ",".join("%s:%d" % (k, v) for k, v in sorted(mix.items(),
-                                                               key=lambda kv: -kv[1])[:8])
-            log("  地区筛选（%s）：剔除 %d 个其他地区，待测 %d 个（%s）；"
-                "预算 %d，超出时按 亚太 > 加拿大 > 美国 优先"
-                % (args.cn_region, skipped, len(probe_pool), top, args.cn_max_nodes))
 
         def _run():
             return cn_probe_nodes(probe_pool, geo, [{"city": args.cn_city, "country": "CN"}],
@@ -1750,8 +1852,9 @@ def main():
             % (unit, sum(1 for d in ds if d < 100), sum(1 for d in ds if 100 <= d < 200),
                sum(1 for d in ds if 200 <= d < 400), sum(1 for d in ds if 400 <= d < 800),
                sum(1 for d in ds if d >= 800)))
-        log("  （当前%s门槛 %dms；太严/太松就调 --cn-max-delay）"
-            % (unit, args.cn_max_delay if cn_hit else args.max_delay))
+        log("  （当前%s门槛 %dms；太严/太松就调 %s）"
+            % (unit, args.cn_max_delay if cn_hit else args.max_delay,
+               "--cn-max-delay" if cn_hit else "--max-delay"))
     if n_full == 0:
         log("  没有一个节点通过全部门槛，保留上一版订阅，不下发空配置")
         annotate("最终 0 个节点通过（候选 %d，上海探针有数据 %d）；"

@@ -64,16 +64,16 @@ jobs:
           else
             OUT_ARGS="--out out/flclash-free-nodes.yaml"
           fi
-          # --max-delay 200      : 机房（美国）测的“节点能不能出去”：谷歌/YouTube 双通 + 机房延迟上限
+          # 策略：先按地区/协议筛选，再用真实代理链路做并发压测（等价 clash-speedtest 的 download+并发），
+          #       砍掉“连不上”和“抖动大”的；globalping 上海探针已默认关闭（与真实体验相关性差）。
           # --cn-types ss,trojan : 只保留 ss/trojan（实测国内：reality 0%、ws/CDN 前缀 0%、ss/trojan 约 20%）
-          # --cn-region asia_na : 只保留 日/新/韩/台/港 + 美/加，其余地区剔除；
-          #                        额度不够时按 亚太 > 加拿大 > 美国 的顺序优先测
-          # --cn-max-delay 120  : 上海实测门槛（只留真正快的那一档）
-          # --cn-max-nodes 200  : 探针容量（配额 250/小时）
-          # --carry-max-delay 150: 上一版老节点复测，上海 RTT ≤150ms 才保留并排最前
+          # --cn-region asia_na  : 只保留 日/新/韩/台/港 + 美/加（归属未知的也留），其余剔除
+          # --max-delay 200      : 机房实测延迟上限
+          # --burst 6            : 每个节点同时开 6 条连接压测，成功率 ≥80%、抖动 ≤150ms 才算过
           python -u scripts/pipeline.py --workers 128 --rounds 2 --timeout 3000 \
-            --cn-types ss,trojan --cn-region asia_na --cn-max-delay 120 --cn-max-nodes 200 \
-            --min-nodes 3 --carry-max-delay 150 $OUT_ARGS 2>&1 | tee pipeline.log
+            --cn-types ss,trojan --cn-region asia_na --max-delay 200 \
+            --burst 6 --burst-min-ok 0.8 --burst-jitter 150 \
+            --min-nodes 3 $OUT_ARGS 2>&1 | tee pipeline.log
 
       # 合并版含密钥，只推到私有 Gist；公开仓库里永远只有免费节点
       - name: 发布合并订阅到私有 Gist（可选）
