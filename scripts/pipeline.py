@@ -786,9 +786,15 @@ def _gp_ms(res, target_ips=None):
 def probe_identity(p):
     """客户端真正会发出去的 TLS SNI / Host。
 
-    CDN 前缀型节点（CloudFront/Cloudflare 等）的 server 只是个边缘 IP，
-    真正决定能不能通的是 SNI/Host —— 而国内是按 SNI 阻断的（TCP 能握手、TLS 被重置）。
-    所以只要配置里带 servername/sni/ws Host，就必须用它做校验，不能用 IP。"""
+    但要小心两类“假 SNI”：
+      1. REALITY 节点的 servername 是**伪装域名**（指向苹果/百度/Cloudflare 等真实站点），
+         拿它做 HTTPS 校验等于在测那个网站，会得到 5ms 这种假数据；
+      2. hysteria/hysteria2/tuic 的 sni 同样是伪装用的。
+    这两种情况一律返回 None，退回用“节点地址:端口”做测量。"""
+    if p.get("reality-opts"):
+        return None
+    if str(p.get("type") or "").lower() in ("hysteria", "hysteria2", "tuic"):
+        return None
     srv = str(p.get("server") or "")
     cands = [p.get("servername"), p.get("sni")]
     ws = p.get("ws-opts")
@@ -1388,6 +1394,9 @@ def main():
                          "auto=亚太+澳门+未知；all=不筛选。超出预算时按 亚太>加拿大>美国 优先")
     ap.add_argument("--cn-max-nodes", type=int, default=150,
                     help="本次最多量多少个节点（globalping 免费额度 250 次/小时），默认 150")
+    ap.add_argument("--cn-types", default="ss,trojan",
+                    help="只保留这些协议（默认 ss,trojan）。实测国内：reality 0%%、ws/CDN 前缀 0%%、"
+                         "ss/trojan 约 20%%；传空字符串表示不限制")
     ap.add_argument("--cn-workers", type=int, default=4,
                     help="并发创建的探针测量数量，默认 4")
     ap.add_argument("--allow-degraded", action="store_true",
@@ -1533,6 +1542,20 @@ def main():
         log("  严格验证无法进行：%s" % vstat["fatal"])
         annotate("严格验证无法进行：%s" % vstat["fatal"])
         return 1
+    # 协议筛选：实测（上海本机、真实客户端）只有 ss/trojan 还有存活，
+    # REALITY 与 ws/CDN 前缀节点通过率 0% —— 机房能通、国内被识别，留着只会给用户超时。
+    if args.cn_types.strip():
+        allow = {t.strip().lower() for t in args.cn_types.split(",") if t.strip()}
+        keep, drop = [], []
+        for p in candidates:
+            (keep if str(p.get("type") or "").lower() in allow else drop).append(p)
+        if drop:
+            for p in drop:
+                verified.pop(p["__id"], None)
+            log("  协议筛选：只留 %s，剔除 %d 个（reality/ws 在国内实测 0%% 通过）"
+                % ("/".join(sorted(allow)), len(drop)))
+            candidates = keep
+
     log("[7/9] 查询归属地（先查，因为亚太门槛和探针挑样都要看国家）")
     t_geo = time.time()
     geo = geolocate([str(p.get("server")) for p in candidates])
