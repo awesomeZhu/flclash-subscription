@@ -1,10 +1,10 @@
 # FLClash / Mihomo 订阅 — 免费公共节点
 # ⚠️ 宽口径版：只做了“谷歌+YouTube 双通 + 地区筛选”，不限协议、未做并发压测 —— 用于对照测试
-# 生成时间: 2026-11-22 01:26 (UTC+0000)   节点: 132
+# 生成时间: 2026-11-23 01:50 (UTC+0000)   节点: 111
 # 数据来源: GitHub 上每日更新的公开免费节点库，合并去重后逐个实测：
 #   ① 谷歌 (www.google.com/generate_204) 与 YouTube (www.youtube.com) 都能真打开；
 #   ② 机房实测延迟 ≤ 3000ms，并通过 6 并发压测（成功率≥80%、抖动≤300ms）；节点名里的数字是机房延迟。
-#   其中 10 个是上一版留下的老节点（本轮复测仍然可用，排在最前）
+#   其中 9 个是上一版留下的老节点（本轮复测仍然可用，排在最前）
 # 本文件由 GitHub Actions 自动生成，请勿手工修改
 
 mixed-port: 7890
@@ -64,21 +64,36 @@ proxies:
 -
   password: "null"
   port: 443
-  server: 172.64.68.89
-  skip-cert-verify: true
-  tls: true
-  type: http
-  username: "null"
-  name: 🇨🇦 CA-01 · 68ms
--
-  password: "null"
-  port: 443
   server: 172.64.69.89
   skip-cert-verify: true
   tls: true
   type: http
   username: "null"
-  name: 🇨🇦 CA-02 · 74ms
+  name: 🇨🇦 CA-01 · 66ms
+-
+  port: 443
+  server: 172.64.69.89
+  skip-cert-verify: true
+  tls: true
+  type: http
+  name: 🇨🇦 CA-02 · 70ms
+-
+  port: 443
+  server: 172.64.68.89
+  skip-cert-verify: true
+  sni: 172.64.68.89
+  tls: true
+  type: http
+  name: 🇨🇦 CA-03 · 72ms
+-
+  password: "null"
+  port: 443
+  server: 172.64.68.89
+  skip-cert-verify: true
+  tls: true
+  type: http
+  username: "null"
+  name: 🇨🇦 CA-04 · 81ms
 -
   alpn:
     - http/1.1
@@ -95,51 +110,28 @@ proxies:
     headers:
       Host: 6qwoom7kdrcoan3ui4ra5dy.pages.dev
     path: "/vl/KSPdmco70dfoXFS292o2Nv6yPt?ed=2560#Telegram---PLANB_NET---PLANB_NET---PLANB_NET---PLANB_NET"
-  name: 🇨🇦 CA-03 · 91ms
+  name: 🇨🇦 CA-05 · 156ms
 -
-  ip: 172.16.0.2/32
-  mtu: 1280
-  port: 500
-  presharedkey: ""
-  private-key: "2D+QMolgGWVRVGdJJvsQ4VBDCcZTym0c1sFN00PeMUs="
-  public-key: "bmXOC+F1FxEMF9dyiK2H5/1SUtzH0JuVo51h2wPfgyo="
-  reserved:
-    - 213
-    - 74
-    - 19
-  server: 162.159.192.3
-  type: wireguard
-  udp: true
-  name: 🇨🇦 CA-04 · 94ms
+  cipher: aes-256-gcm
+  password: kDWvXYZoTBcGkC4
+  port: 8882
+  server: 51.222.136.236
+  type: ss
+  name: 🇨🇦 CA-06 · 234ms
 -
   cipher: aes-256-gcm
   password: zDNVedRFPQexG9v
   port: 445
   server: 51.222.141.125
   type: ss
-  name: 🇨🇦 CA-05 · 98ms
--
-  port: 443
-  server: 172.64.69.89
-  skip-cert-verify: true
-  tls: true
-  type: http
-  name: 🇨🇦 CA-06 · 108ms
--
-  port: 443
-  server: 172.64.68.89
-  skip-cert-verify: true
-  sni: 172.64.68.89
-  tls: true
-  type: http
-  name: 🇨🇦 CA-07 · 109ms
+  name: 🇨🇦 CA-07 · 245ms
 -
   server: 137.184.174.93
   port: 8080
   type: ss
   cipher: rc4-md5
   password: 14fFPrbezE3HDZzsMOr6
-  name: 🇨🇦 CA-08 · 144ms
+  name: 🇨🇦 CA-08 · 292ms
 -
   type: vmess
   network: tcp
@@ -150,93 +142,45 @@ proxies:
   tls: true
   alterId: 0
   cipher: auto
-  name: 🇨🇦 CA-09 · 173ms
+  name: 🇨🇦 CA-09 · 316ms
 -
-  cipher: aes-256-gcm
-  password: kDWvXYZoTBcGkC4
-  port: 8882
-  server: 51.222.136.236
+  name: 🇨🇦 CA-10 · 51ms
+  server: 149.22.95.183
+  port: 443
   type: ss
-  name: 🇨🇦 CA-10 · 175ms
+  cipher: aes-128-gcm
+  password: shadowsocks
 -
-  name: 🇨🇦 CA-11 · 58ms
-  password: None
+  name: 🇨🇦 CA-11 · 77ms
+  type: vless
+  network: ws
+  server: www.gov.se
+  port: 8080
+  uuid: 989d58b8-d2ea-4d28-b5ff-0f3cd078f2cf
+  servername: www.gov.se
+  tls: false
+  ws-opts:
+    headers:
+      Host: sdf23g-billowing-moon-348e.mzm468gc.workers.dev
+    path: /
+-
+  name: 🇨🇦 CA-12 · 81ms
+  type: vless
+  network: ws
+  server: 172.64.146.66
   port: 443
-  server: 172.64.68.89
-  skip-cert-verify: true
-  sub_tag: P002-260618
-  tls: true
-  type: http
-  udp: true
-  x-toolall-mihomo: true
--
-  name: 🇨🇦 CA-12 · 76ms
-  type: vless
-  network: ws
-  server: 104.21.70.21
-  port: 443
-  uuid: 93fa8bdb-9cca-4a3e-8355-b7c12e4f595e
-  servername: fornewiran.ade-1000.workers.dev
-  skip-cert-verify: false
-  tls: true
-  udp: true
-  tfo: false
-  client-fingerprint: unsafe
-  ws-opts:
-    headers:
-      Host: fornewiran.ade-1000.workers.dev
-    path: "/vl/yLWNcuUuw1jlJpkDhGy?ed=2560"
--
-  name: 🇨🇦 CA-13 · 79ms
-  type: vless
-  network: ws
-  server: 104.26.4.57
-  port: 2087
-  uuid: 767b6340-96dc-4aa0-8013-a8af7513d920
-  servername: c7dabe95.proxy-978.pages.dev
-  skip-cert-verify: false
-  tls: true
-  udp: true
-  tfo: false
-  client-fingerprint: chrome
-  ws-opts:
-    headers:
-      Host: c7dabe95.proxy-978.pages.dev
--
-  name: 🇨🇦 CA-14 · 82ms
-  type: vless
-  network: ws
-  server: 172.64.154.113
-  port: 8443
-  uuid: 53bbdad4-2f4e-45db-8df4-fa491a6a7227
-  servername: freeceshi6.frii.site
-  skip-cert-verify: false
-  tls: true
-  udp: true
-  tfo: false
-  client-fingerprint: chrome
-  ws-opts:
-    headers:
-      Host: freeceshi6.frii.site
-    path: "/proxyip=ProxyIP.JP.CMLiussss.net"
--
-  name: 🇭🇰 HK-01 · 85ms
-  type: vless
-  network: ws
-  server: 27.50.48.6
-  port: 443
-  uuid: c98a16e4-0dc5-42f0-b3db-30f04525c123
-  servername: vless2-8vx.pages.dev
+  uuid: 16e80f38-e97e-4b14-ba89-77d87a3e637f
+  servername: ex3r.qzz.io
   skip-cert-verify: false
   tls: true
   udp: true
   tfo: false
   ws-opts:
     headers:
-      Host: vless2-8vx.pages.dev
-    path: "/fp=chromesecurity=tls"
+      Host: ex3r.qzz.io
+    path: /sg-orcl
 -
-  name: 🇨🇦 CA-15 · 86ms
+  name: 🇨🇦 CA-13 · 92ms
   type: vless
   network: ws
   server: 104.26.13.31
@@ -249,57 +193,13 @@ proxies:
       Host: bdfba-cool-tree-b580.v8fz4kbv.workers.dev
     path: /
 -
-  name: 🇨🇦 CA-16 · 87ms
+  name: 🇨🇦 CA-14 · 96ms
   type: vless
   network: ws
-  server: 104.18.109.147
-  port: 2052
-  uuid: c29d39bd-92a4-45db-bb61-56013998617c
-  tls: false
-  ws-opts:
-    headers:
-      Host: www.speedtest.net.www.1google.com.bing.com.visa.com.tls.xv98.ip-ddns.com
-    path: "/Telegram-XV2ry2?ed=2048"
--
-  name: 🇨🇦 CA-17 · 87ms
-  type: vless
-  network: ws
-  server: 162.159.152.4
-  port: 443
-  uuid: f2a73750-3087-48ff-a763-1348c15dce68
-  servername: rAyAn-007.mAxImA.DpDnS.OrG
-  skip-cert-verify: false
-  tls: true
-  udp: true
-  tfo: false
-  ws-opts:
-    headers:
-      Host: rAyAn-007.mAxImA.DpDnS.OrG
-    path: "/fp=chrome"
--
-  name: 🇨🇦 CA-18 · 87ms
-  type: vless
-  network: ws
-  server: 162.159.153.4
-  port: 443
-  uuid: f2a73750-3087-48ff-a763-1348c15dce68
-  servername: rAyAn-007.mAxImA.DpDnS.OrG
-  skip-cert-verify: false
-  tls: true
-  udp: true
-  tfo: false
-  ws-opts:
-    headers:
-      Host: rAyAn-007.mAxImA.DpDnS.OrG
-    path: /
--
-  name: 🇨🇦 CA-19 · 88ms
-  type: vless
-  network: ws
-  server: 172.67.65.56
-  port: 2053
-  uuid: 099244b9-2168-4dbd-870e-cbbe9d6eb573
-  servername: whitecreeper.pages.dev
+  server: 104.26.7.96
+  port: 8443
+  uuid: d8a2ffbb-1c44-4e83-8a62-5e5fe79cc42a
+  servername: edgetunnel-pages-di9.pages.dev
   skip-cert-verify: false
   tls: true
   udp: true
@@ -307,109 +207,15 @@ proxies:
   client-fingerprint: chrome
   ws-opts:
     headers:
-      Host: whitecreeper.pages.dev
-    path: /proxyip
+      Host: edgetunnel-pages-di9.pages.dev
 -
-  alpn:
-    - h3
-  name: 🇭🇰 HK-02 · 88ms
-  network: ws
-  port: 443
-  server: 27.50.48.6
-  servername: vless2-8vx.pages.dev
-  tls: true
-  type: vless
-  uuid: c98a16e4-0dc5-42f0-b3db-30f04525c123
-  ws-opts:
-    headers:
-      Host: vless2-8vx.pages.dev
-    path: "/fp=chrome"
--
-  name: 🇨🇦 CA-20 · 89ms
+  name: 🇨🇦 CA-15 · 98ms
   type: vless
   network: ws
-  server: 104.17.28.83
-  port: 2087
-  uuid: 099244b9-2168-4dbd-870e-cbbe9d6eb573
-  servername: whitecreeper.pages.dev
-  skip-cert-verify: false
-  tls: true
-  udp: true
-  tfo: false
-  client-fingerprint: chrome
-  ws-opts:
-    headers:
-      Host: whitecreeper.pages.dev
-    path: "/proxyip=ProxyIP.SG.CMLiussss.Net"
--
-  name: 🇨🇦 CA-21 · 92ms
-  type: vless
-  network: ws
-  server: 172.64.88.98
-  port: 443
-  uuid: afa524de-2b93-4be9-b846-6bc88d8a2ce1
-  servername: 1v5Vp5jsQ611A5dsm.PAges.dEV
-  skip-cert-verify: false
-  tls: true
-  udp: true
-  tfo: false
-  client-fingerprint: chrome
-  ws-opts:
-    headers:
-      Host: 1v5Vp5jsQ611A5dsm.PAges.dEV
-    path: "/vl/fbo164EXEqNcjQ9WdWcK?ed=2560"
--
-  name: 🇨🇦 CA-22 · 93ms
-  type: vless
-  network: ws
-  server: 104.21.14.123
-  port: 443
-  uuid: 66969b2e-5e49-4750-9419-167d4bb64c07
-  servername: wallweb11.wallwebc992h7.workers.dev
-  skip-cert-verify: false
-  tls: true
-  udp: true
-  tfo: false
-  client-fingerprint: chrome
-  ws-opts:
-    headers:
-      Host: wallweb11.wallwebc992h7.workers.dev
-    path: /
--
-  cipher: aes-256-gcm
-  name: 🇨🇦 CA-23 · 93ms
-  password: zDNVedRFPQexG9v
-  port: 445
-  server: 51.222.12.127
-  type: ss
--
-  type: ss
-  name: 🇨🇦 CA-24 · 101ms
-  server: 184.107.106.77
-  port: 8388
-  password: "itzvpn@321"
-  cipher: aes-256-gcm
-  udp: true
-  tls: false
-  skip-cert-verify: false
--
-  type: ss
-  name: 🇨🇦 CA-25 · 103ms
-  server: 184.107.106.78
-  port: 8388
-  password: "itzvpn@321"
-  cipher: aes-256-gcm
-  udp: true
-  tls: false
-  skip-cert-verify: false
--
-  name: 🇨🇦 CA-26 · 105ms
-  type: vless
-  network: ws
-  server: 172.67.75.194
+  server: 172.66.45.42
   port: 2096
-  uuid: 099244b9-2168-4dbd-870e-cbbe9d6eb573
-  servername: whitecreeper.pages.dev
+  uuid: b2853d19-fada-44dc-8d44-967d1af122e0
+  servername: wqa3miojjr8fyozhiui--su3-ucg1gdx.pages.dev
   skip-cert-verify: false
   tls: true
   udp: true
@@ -417,68 +223,10 @@ proxies:
   client-fingerprint: chrome
   ws-opts:
     headers:
-      Host: whitecreeper.pages.dev
-    path: "/proxyip=ProxyIP.SG.CMLiussss.Net"
+      Host: wqa3miojjr8fyozhiui--su3-ucg1gdx.pages.dev
+    path: /eyJqdW5rIjoiek9GRkhzRHROb3o1IiwicHJvdG9jb2wiOiJ2bCIsIm1vZGUiOiJwcmVmaXgiLCJwYW5lbElQcyI6WyJbMmEwMjo4OTg6MTQ2OjY0OjpdIl19
 -
-  name: 🇨🇦 CA-27 · 112ms
-  type: vmess
-  network: tcp
-  server: 23.162.200.198
-  port: 18000
-  uuid: f8c8dc3d-0d37-46b0-8b34-a7232882fcfe
-  tls: false
-  alterId: 0
-  cipher: auto
--
-  name: 🇨🇦 CA-28 · 119ms
-  type: vless
-  network: ws
-  server: 188.114.96.9
-  port: 443
-  uuid: 2e305ebe-f6e6-4689-b32f-cd04ab5ff541
-  servername: idb8onmvbntuyt5t7t6cejfw8vlrb.pages.dev
-  skip-cert-verify: false
-  tls: true
-  udp: true
-  tfo: false
-  client-fingerprint: chrome
-  ws-opts:
-    headers:
-      Host: idb8onmvbntuyt5t7t6cejfw8vlrb.pages.dev
-    path: /vl/9yvcoLdzdOXLUYfH7r5gwJhu1CHrj
--
-  name: 🇨🇦 CA-29 · 120ms
-  type: vmess
-  network: tcp
-  server: 134.195.196.211
-  port: 18000
-  uuid: f8c8dc3d-0d37-46b0-8b34-a7232882fcfe
-  udp: true
-  alterId: 0
-  cipher: auto
--
-  type: vmess
-  name: 🇨🇦 CA-30 · 123ms
-  server: 23.162.200.198
-  port: 18000
-  uuid: f8c8dc3d-0d37-46b0-8b34-a7232882fcfe
-  cipher: auto
-  alterId: 0
-  udp: true
-  tls: false
-  skip-cert-verify: false
--
-  type: ss
-  name: 🇨🇦 CA-31 · 129ms
-  server: 134.195.198.163
-  port: 443
-  password: PmCqK98WqhSC
-  cipher: chacha20-ietf-poly1305
-  udp: true
-  tls: false
-  skip-cert-verify: false
--
-  name: 🇨🇦 CA-32 · 130ms
+  name: 🇨🇦 CA-16 · 105ms
   type: vless
   network: ws
   server: 188.114.98.5
@@ -495,104 +243,13 @@ proxies:
       Host: cdn-edge-2fba99-gw.eng-ops-7084b7.workers.dev
     path: "/9ea36182644d0f1f?ed=2560"
 -
-  alpn:
-    - h3
-  client-fingerprint: chrome
-  name: 🇨🇦 CA-33 · 132ms
-  network: ws
-  password: bpb-trojan
-  port: 443
-  server: russia.com
-  skip-cert-verify: false
-  sni: kargar001.pages.dev
-  type: trojan
-  udp: true
-  ws-opts:
-    headers:
-      User-Agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.102 Safari/537.36"
-    path: "/tr?ed=2560"
--
-  type: trojan
-  name: 🇨🇦 CA-34 · 138ms
-  server: 216.152.147.74
-  port: 443
-  password: 0ab6c98dae3b48e8b9c4a776b6c9c19a
-  udp: true
-  tls: true
-  servername: api.connectingpeoplewithgreatjobs.com
-  sni: api.connectingpeoplewithgreatjobs.com
-  skip-cert-verify: false
--
-  name: 🇨🇦 CA-35 · 143ms
-  password: 0ab6c98dae3b48e8b9c4a776b6c9c19a
-  port: 443
-  server: 216.152.147.93
-  sni: connectingpeoplewithgreatjobs.com
-  type: trojan
--
-  name: 🇨🇦 CA-36 · 148ms
+  name: 🇨🇦 CA-17 · 111ms
   type: vless
   network: ws
-  server: www.gov.se
-  port: 8080
-  uuid: 989d58b8-d2ea-4d28-b5ff-0f3cd078f2cf
-  servername: www.gov.se
-  tls: false
-  ws-opts:
-    headers:
-      Host: sdf23g-billowing-moon-348e.mzm468gc.workers.dev
-    path: /
--
-  type: trojan
-  name: 🇨🇦 CA-37 · 156ms
-  server: 216.152.147.152
+  server: 172.66.47.202
   port: 443
-  password: 0ab6c98dae3b48e8b9c4a776b6c9c19a
-  udp: true
-  tls: true
-  servername: learn.connectingpeoplewithgreatjobs.com
-  sni: learn.connectingpeoplewithgreatjobs.com
-  skip-cert-verify: false
--
-  type: trojan
-  name: 🇨🇦 CA-38 · 159ms
-  server: 216.152.147.85
-  port: 443
-  password: 0ab6c98dae3b48e8b9c4a776b6c9c19a
-  udp: true
-  tls: true
-  servername: cdn.connectingpeoplewithgreatjobs.com
-  sni: cdn.connectingpeoplewithgreatjobs.com
-  skip-cert-verify: false
--
-  type: ss
-  name: 🇨🇦 CA-39 · 159ms
-  server: 158.51.121.221
-  port: 19999
-  password: "ZRpgaBeGxtENIXgvhpkZBKz9GnWRS2dYcx9O+a2iwN4="
-  cipher: aes-256-gcm
-  udp: true
-  tls: false
-  skip-cert-verify: false
--
-  type: trojan
-  name: 🇨🇦 CA-40 · 161ms
-  server: 216.152.147.93
-  port: 443
-  password: 0ab6c98dae3b48e8b9c4a776b6c9c19a
-  udp: true
-  tls: true
-  servername: connectingpeoplewithgreatjobs.com
-  sni: connectingpeoplewithgreatjobs.com
-  skip-cert-verify: false
--
-  name: 🇭🇰 HK-03 · 162ms
-  type: vless
-  network: ws
-  server: 27.50.49.154
-  port: 2083
-  uuid: 40af9131-d540-448a-bc56-5bba147a1dc3
-  servername: proxy-34l.pages.dev
+  uuid: d8a2ffbb-1c44-4e83-8a62-5e5fe79cc42a
+  servername: edgetunnel-pages-di9.pages.dev
   skip-cert-verify: false
   tls: true
   udp: true
@@ -600,83 +257,121 @@ proxies:
   client-fingerprint: chrome
   ws-opts:
     headers:
-      Host: proxy-34l.pages.dev
+      Host: edgetunnel-pages-di9.pages.dev
+-
+  name: 🇨🇦 CA-18 · 115ms
+  type: vless
+  network: ws
+  server: 104.18.109.147
+  port: 2052
+  uuid: c29d39bd-92a4-45db-bb61-56013998617c
+  tls: false
+  ws-opts:
+    headers:
+      Host: www.speedtest.net.www.1google.com.bing.com.visa.com.tls.xv98.ip-ddns.com
+    path: "/Telegram-XV2ry2?ed=2048"
+-
+  name: 🇨🇦 CA-19 · 117ms
+  type: vless
+  network: ws
+  server: 172.67.141.182
+  port: 443
+  uuid: ce440dcf-e570-4a50-af37-bf588ee8a988
+  servername: 6qwoom7kdrcoan3ui4ra5dy.pages.dev
+  skip-cert-verify: false
+  tls: true
+  udp: true
+  tfo: false
+  ws-opts:
+    headers:
+      Host: 6qwoom7kdrcoan3ui4ra5dy.pages.dev
+    path: "/vl/KSPdmco70dfoXFS292o2Nv6yPt?ed=2560"
+-
+  type: vless
+  name: 🇨🇦 CA-20 · 118ms
+  server: 162.159.135.234
+  port: 2096
+  uuid: 5d7b401c-78fa-4254-872e-6d42bf7e75ec
+  udp: true
+  tls: true
+  servername: vp8.1145678.xyz
+  sni: vp8.1145678.xyz
+  skip-cert-verify: false
+  client-fingerprint: chrome
+  network: ws
+  ws-opts:
+    path: /p
+    headers:
+      Host: vp8.1145678.xyz
+-
+  name: 🇨🇦 CA-21 · 119ms
+  type: vless
+  network: ws
+  server: 172.67.74.90
+  port: 443
+  uuid: a4a951b9-901d-4db8-8a7d-6df82c4b5c23
+  servername: cvhpyn.pages.dev
+  skip-cert-verify: false
+  tls: true
+  udp: true
+  tfo: false
+  ws-opts:
+    headers:
+      Host: cvhpyn.pages.dev
+    path: "/fp=chrome"
+-
+  type: vless
+  name: 🇨🇦 CA-22 · 120ms
+  server: 172.67.163.208
+  port: 2053
+  uuid: 51a0af77-a60c-4d9b-81a4-f50e1b38d90b
+  udp: true
+  tls: true
+  servername: vf3uymn6bu20313tqlfvws58mnqrhxxi.pages.dev
+  sni: vf3uymn6bu20313tqlfvws58mnqrhxxi.pages.dev
+  skip-cert-verify: false
+  client-fingerprint: chrome
+  network: ws
+  ws-opts:
     path: /
+    headers:
+      Host: vf3uymn6bu20313tqlfvws58mnqrhxxi.pages.dev
 -
-  type: trojan
-  name: 🇨🇦 CA-41 · 162ms
-  server: 216.152.147.48
-  port: 443
-  password: 0ab6c98dae3b48e8b9c4a776b6c9c19a
+  type: vless
+  name: 🇨🇦 CA-23 · 127ms
+  server: 104.18.35.86
+  port: 2083
+  uuid: a1de0630-5786-48a0-84f6-dc6f2de10d6d
   udp: true
   tls: true
-  servername: courses.connectingpeoplewithgreatjobs.com
-  sni: courses.connectingpeoplewithgreatjobs.com
+  servername: vlsovip.1d.mom
+  sni: vlsovip.1d.mom
   skip-cert-verify: false
+  client-fingerprint: chrome
+  network: ws
+  ws-opts:
+    path: "/fp=unsafe"
+    headers:
+      Host: vlsovip.1d.mom
 -
-  type: trojan
-  name: 🇨🇦 CA-42 · 168ms
-  server: 216.152.147.89
+  name: 🇨🇦 CA-24 · 134ms
+  password: None
   port: 443
-  password: 0ab6c98dae3b48e8b9c4a776b6c9c19a
-  udp: true
-  tls: true
-  servername: www.connectingpeoplewithgreatjobs.com
-  sni: www.connectingpeoplewithgreatjobs.com
-  skip-cert-verify: false
--
-  type: trojan
-  name: 🇨🇦 CA-43 · 177ms
-  server: 216.152.147.79
-  port: 443
-  password: 0ab6c98dae3b48e8b9c4a776b6c9c19a
-  udp: true
-  tls: true
-  servername: blog.connectingpeoplewithgreatjobs.com
-  sni: blog.connectingpeoplewithgreatjobs.com
-  skip-cert-verify: false
--
-  type: trojan
-  name: 🇨🇦 CA-44 · 177ms
-  server: 216.152.147.201
-  port: 443
-  password: 0ab6c98dae3b48e8b9c4a776b6c9c19a
-  udp: true
-  tls: true
-  servername: resources.connectingpeoplewithgreatjobs.com
-  sni: resources.connectingpeoplewithgreatjobs.com
-  skip-cert-verify: false
--
-  name: 🇨🇦 CA-45 · 186ms
-  password: 0ab6c98dae3b48e8b9c4a776b6c9c19a
-  port: 443
-  server: 216.152.147.79
-  skip-cert-verify: false
-  sni: blog.connectingpeoplewithgreatjobs.com
-  type: trojan
--
-  name: 🇨🇦 CA-46 · 324ms
-  type: vmess
-  server: 104.21.7.133
-  port: 443
-  cipher: auto
-  uuid: 0cf6d970-3f1d-4aae-a989-92a8f76ae3db
-  alterId: 0
-  tls: true
+  server: 172.64.68.89
   skip-cert-verify: true
-  network: ws
-  ws-opts:
-    path: /ws
-    headers:
-      host: vmess.lbw666.dpdns.org
+  sub_tag: P002-260618
+  tls: true
+  type: http
+  udp: true
+  x-toolall-mihomo: true
 -
-  name: 🇨🇦 CA-47 · 353ms
+  name: 🇨🇦 CA-25 · 146ms
   type: vless
   network: ws
-  server: 92.53.190.167
+  server: 104.27.109.16
   port: 443
-  uuid: 50414e45-4c5f-5a45-5553-ccc0e8cd3a83
-  servername: fgzb39ezu86s.ycz7syeeu3is.workers.dev
+  uuid: 67ab86b7-69fb-41bf-8967-290cbd08f0ac
+  servername: jldmwa9cfrug7b03cr1vs.pages.dev
   skip-cert-verify: false
   tls: true
   udp: true
@@ -684,32 +379,49 @@ proxies:
   client-fingerprint: chrome
   ws-opts:
     headers:
-      Host: fgzb39ezu86s.ycz7syeeu3is.workers.dev
-    path: "/stream/PANEL_ZEUS/ccc0e8cd3a83fp=unsafe"
+      Host: jldmwa9cfrug7b03cr1vs.pages.dev
+    path: "/vl/43gYvFJEPmUtPFSZ?ed=2560"
 -
-  name: 🇨🇦 CA-48 · 360ms
+  name: 🇨🇦 CA-26 · 147ms
   type: vless
   network: ws
-  server: 172.67.134.136
+  server: 188.114.96.9
   port: 443
-  uuid: fa45096d-bed0-ad80-c773-23c300000003
-  servername: xo3ubk-c97eql-n2d4a9.shoameni17.workers.dev
+  uuid: 2e305ebe-f6e6-4689-b32f-cd04ab5ff541
+  servername: idb8onmvbntuyt5t7t6cejfw8vlrb.pages.dev
+  skip-cert-verify: false
+  tls: true
+  udp: true
+  tfo: false
+  client-fingerprint: chrome
+  ws-opts:
+    headers:
+      Host: idb8onmvbntuyt5t7t6cejfw8vlrb.pages.dev
+    path: /vl/9yvcoLdzdOXLUYfH7r5gwJhu1CHrj
+-
+  name: 🇨🇦 CA-27 · 151ms
+  type: vless
+  network: ws
+  server: 104.18.40.171
+  port: 443
+  uuid: 8895be79-9817-4011-b81a-14a35a3d328e
+  servername: wallweb-boi.pages.dev
   skip-cert-verify: false
   tls: true
   udp: true
   tfo: false
   ws-opts:
     headers:
-      Host: xo3ubk-c97eql-n2d4a9.shoameni17.workers.dev
+      Host: wallweb-boi.pages.dev
     path: /
 -
-  name: 🇨🇦 CA-49 · 424ms
+  name: 🇨🇦 CA-28 · 155ms
   type: vless
   network: ws
-  server: 172.67.131.125
-  port: 2083
-  uuid: f418674e-f518-4318-8ff9-e10000000046
-  servername: smart-edge-424.arti98399-1905.workers.dev
+  server: 172.67.65.56
+  port: 2053
+  uuid: 099244b9-2168-4dbd-870e-cbbe9d6eb573
+  servername: whitecreeper.pages.dev
   skip-cert-verify: false
   tls: true
   udp: true
@@ -717,59 +429,75 @@ proxies:
   client-fingerprint: chrome
   ws-opts:
     headers:
-      Host: smart-edge-424.arti98399-1905.workers.dev
-    path: /sync
+      Host: whitecreeper.pages.dev
+    path: /proxyip
 -
-  name: 🇨🇦 CA-50 · 461ms
-  server: tachu37.top
-  port: 443
+  name: 🇨🇦 CA-29 · 163ms
   type: vless
-  uuid: 65c21703-ae89-4eed-ae87-8bec8a4c000c
-  tls: true
-  alpn:
-    - http/1.1
-  servername: tachu37.top
-  client-fingerprint: chrome
   network: ws
-  ws-opts:
-    path: /js
-    headers:
-      Host: tachu37.top
-  udp: true
--
-  cipher: aes-128-gcm
-  name: 🇯🇵 JP-01 · 464ms
-  password: shadowsocks
-  port: 443
-  server: 149.22.87.240
-  type: ss
--
-  cipher: aes-128-gcm
-  name: 🇯🇵 JP-02 · 464ms
-  password: shadowsocks
-  port: 443
-  server: 149.22.87.241
-  type: ss
--
-  cipher: aes-128-gcm
-  name: 🇯🇵 JP-03 · 467ms
-  password: shadowsocks
-  port: 443
-  server: 149.22.87.204
-  type: ss
--
-  type: vmess
-  name: 🇯🇵 JP-04 · 497ms
-  server: 64.176.34.102
-  port: 46130
-  uuid: 477350b2-7536-4f38-ee21-020efdde2d1d
-  cipher: auto
-  alterId: 0
-  udp: true
-  tls: false
+  server: 104.26.15.138
+  port: 2053
+  uuid: 7b102311-43fd-4e8f-877e-8090623c101d
+  servername: vp21.cc.cd
   skip-cert-verify: false
+  tls: true
+  udp: true
+  tfo: false
+  client-fingerprint: chrome
+  ws-opts:
+    headers:
+      Host: vp21.cc.cd
+    path: /
 -
-  name: 🇨🇦 CA-51 · 512ms
+  name: 🇨🇦 CA-30 · 171ms
+  type: vless
+  network: ws
+  server: 104.20.30.179
+  port: 2096
+  uuid: 51a0af77-a60c-4d9b-81a4-f50e1b38d90b
+  servername: ahmad99hoseini.pages.dev
+  skip-cert-verify: false
+  tls: true
+  udp: true
+  tfo: false
+  client-fingerprint: chrome
+  ws-opts:
+    headers:
+      Host: ahmad99hoseini.pages.dev
+-
+  name: 🇭🇰 HK-01 · 175ms
+  type: vless
+  network: ws
+  server: 27.50.48.6
+  port: 443
+  uuid: c98a16e4-0dc5-42f0-b3db-30f04525c123
+  servername: vless2-8vx.pages.dev
+  skip-cert-verify: false
+  tls: true
+  udp: true
+  tfo: false
+  ws-opts:
+    headers:
+      Host: vless2-8vx.pages.dev
+    path: "/fp=chromesecurity=tls"
+-
+  name: 🇨🇦 CA-31 · 178ms
+  type: vless
+  network: ws
+  server: 172.67.69.152
+  port: 443
+  uuid: 506e4a91-1d05-5683-b84c-2113f673cb19
+  servername: vltj.qzz.io
+  skip-cert-verify: false
+  tls: true
+  udp: true
+  tfo: false
+  ws-opts:
+    headers:
+      Host: vltj.qzz.io
+    path: /id-pusat
+-
+  name: 🇨🇦 CA-32 · 180ms
   type: vless
   network: ws
   server: 172.67.219.189
@@ -786,316 +514,421 @@ proxies:
       Host: cdn4.salamfox.ir
     path: /d027b485-4e11-4485-9d0f-2ef1f1129eff
 -
-  type: ss
-  name: 🇨🇦 CA-52 · 544ms
-  server: 149.22.95.183
-  port: 443
-  password: shadowsocks
-  cipher: aes-128-gcm
-  udp: true
-  tls: false
-  skip-cert-verify: false
--
+  name: 🇨🇦 CA-33 · 183ms
   type: vless
-  name: 🇨🇦 CA-53 · 585ms
-  server: 104.21.70.21
-  port: 8080
-  uuid: a8b1d666-d3ba-4b17-90c4-ba7514c74f78
-  udp: true
-  tls: false
-  servername: xstack.mahanfixe.workers.dev
-  sni: xstack.mahanfixe.workers.dev
-  skip-cert-verify: false
   network: ws
-  ws-opts:
-    path: /xiron
-    headers:
-      Host: xstack.mahanfixe.workers.dev
--
-  alpn:
-    - http/1.1
+  server: 188.114.96.94
+  port: 443
+  uuid: 66969b2e-5e49-4750-9419-167d4bb64c07
+  servername: wallweb11.wallwebc992h7.workers.dev
+  skip-cert-verify: false
+  tls: true
+  udp: true
+  tfo: false
   client-fingerprint: chrome
-  name: 🇨🇦 CA-54 · 601ms
-  network: ws
-  port: 443
-  server: 172.67.197.170
-  servername: o685y.save-node.com
-  tls: true
-  type: vless
-  udp: true
-  uuid: 88e79aa6-f431-4453-8dcc-652a0c747198
   ws-opts:
     headers:
-      Host: o685y.save-node.com
-    path: /api/se1k2rfxlsuer3ry4u6e84kl8rqp721p
+      Host: wallweb11.wallwebc992h7.workers.dev
+    path: /
 -
-  type: vmess
-  name: 🇰🇷 KR-01 · 636ms
-  server: 140.238.2.250
-  port: 443
-  uuid: 41a7089a-040b-4538-8b8d-010902405bde
-  cipher: auto
-  alterId: 0
-  udp: true
-  tls: false
-  skip-cert-verify: false
--
+  name: 🇨🇦 CA-34 · 188ms
   type: vless
-  name: 🇨🇦 CA-55 · 639ms
-  server: kuruish.org
-  port: 443
-  uuid: 03fcc618-b93d-6796-6aed-8a38c975d581
-  udp: true
-  tls: true
-  servername: kuruish.org
-  sni: kuruish.org
-  skip-cert-verify: false
--
-  name: 🇯🇵 JP-05 · 654ms
-  type: vmess
   network: ws
-  server: 168.138.43.75
-  port: 80
-  uuid: 11c3627f-31e8-4695-dfbd-34076e2f1f5d
-  skip-cert-verify: true
-  alterId: 0
-  cipher: auto
+  server: 104.26.6.109
+  port: 2053
+  uuid: 51a0af77-a60c-4d9b-81a4-f50e1b38d90b
+  servername: pilot4f8f.pages.dev
+  skip-cert-verify: false
+  tls: true
+  udp: true
+  tfo: false
   ws-opts:
     headers:
-      Host: jp01.a0a.xyz
-    path: /cctv13.m3u8
+      Host: pilot4f8f.pages.dev
+    path: "/fp=chrome"
 -
-  type: vmess
-  name: 🇯🇵 JP-06 · 665ms
-  server: 168.138.43.75
-  port: 80
-  uuid: 11c3627f-31e8-4695-dfbd-34076e2f1f5d
-  cipher: auto
-  alterId: 0
-  udp: true
-  tls: false
+  name: 🇨🇦 CA-35 · 203ms
+  type: vless
+  network: ws
+  server: 172.67.72.129
+  port: 443
+  uuid: 51a0af77-a60c-4d9b-81a4-f50e1b38d90b
+  servername: cc20i5h7zc50yf204nto2kaw6dw6pn7l.pages.dev
   skip-cert-verify: false
+  tls: true
+  udp: true
+  tfo: false
+  client-fingerprint: chrome
+  ws-opts:
+    headers:
+      Host: cc20i5h7zc50yf204nto2kaw6dw6pn7l.pages.dev
+    path: /
+-
+  name: 🇨🇦 CA-36 · 214ms
+  type: vmess
+  network: tcp
+  server: 23.162.200.198
+  port: 18000
+  uuid: f8c8dc3d-0d37-46b0-8b34-a7232882fcfe
+  tls: false
+  alterId: 0
+  cipher: auto
+-
+  name: 🇨🇦 CA-37 · 223ms
+  type: vless
+  network: ws
+  server: 104.26.3.138
+  port: 443
+  uuid: 506e4a91-1d05-5683-b84c-2113f673cb19
+  servername: vltj.qzz.io
+  skip-cert-verify: false
+  tls: true
+  udp: true
+  tfo: false
+  client-fingerprint: chrome
+  ws-opts:
+    headers:
+      Host: vltj.qzz.io
+    path: /id-pusat
+-
+  name: 🇨🇦 CA-38 · 255ms
+  password: 0ab6c98dae3b48e8b9c4a776b6c9c19a
+  port: 443
+  server: 216.152.147.79
+  skip-cert-verify: false
+  sni: blog.connectingpeoplewithgreatjobs.com
+  type: trojan
+-
+  name: 🇨🇦 CA-39 · 258ms
+  password: 0ab6c98dae3b48e8b9c4a776b6c9c19a
+  port: 443
+  server: 216.152.147.93
+  sni: connectingpeoplewithgreatjobs.com
+  type: trojan
+-
+  name: 🇨🇦 CA-40 · 265ms
+  server: kozel.cc.cd
+  port: 443
+  type: vless
+  uuid: 3b01a777-55e7-49f6-8637-d94ee69607c6
+  tls: true
+  servername: kozel.cc.cd
+  client-fingerprint: chrome
   network: ws
   ws-opts:
-    path: /cctv13.m3u8
+    path: "/118.151.222.66=17317"
+    headers:
+      Host: kozel.cc.cd
+  udp: true
 -
   cipher: aes-256-gcm
-  name: 🇸🇬 SG-01 · 673ms
-  password: "ZRpgaBeGxtENIXgvhpkZBKz9GnWRS2dYcx9O+a2iwN4="
-  port: 19999
-  server: 51.79.228.131
+  name: 🇨🇦 CA-41 · 277ms
+  password: zDNVedRFPQexG9v
+  port: 445
+  server: 51.222.12.127
   type: ss
 -
+  name: 🇨🇦 CA-42 · 287ms
+  type: vmess
+  network: tcp
+  server: 134.195.196.211
+  port: 18000
+  uuid: f8c8dc3d-0d37-46b0-8b34-a7232882fcfe
+  udp: true
+  alterId: 0
+  cipher: auto
+-
+  name: 🇨🇦 CA-43 · 297ms
+  type: vless
+  network: tcp
+  server: 66.163.113.9
+  port: 443
+  uuid: 03fcc618-b93d-6796-6aed-8a38c975d581
+  servername: kuruish.org
+  skip-cert-verify: false
+  tls: true
+  udp: true
+  tfo: false
+-
+  name: 🇯🇵 JP-01 · 306ms
+  server: 168.138.205.100
+  port: 53758
+  type: ss
+  cipher: aes-128-gcm
+  password: Bwlqh7GcFB
+-
+  cipher: aes-256-gcm
+  name: 🇨🇦 CA-44 · 316ms
+  password: cdBIDV42DCwnfIN
+  port: 8118
+  server: 51.79.85.185
+  type: ss
+-
+  cipher: aes-128-gcm
+  name: 🇯🇵 JP-02 · 319ms
+  password: shadowsocks
+  port: 443
+  server: 149.22.87.241
+  type: ss
+-
+  name: 🇯🇵 JP-03 · 321ms
+  server: jpa.123069.xyz
+  port: 53758
+  type: ss
+  cipher: aes-128-gcm
+  password: Bwlqh7GcFB
+-
+  cipher: aes-128-gcm
+  name: 🇯🇵 JP-04 · 324ms
+  password: shadowsocks
+  port: 443
+  server: 149.22.87.204
+  type: ss
+-
+  cipher: aes-128-gcm
+  name: 🇯🇵 JP-05 · 325ms
+  password: shadowsocks
+  port: 443
+  server: 149.22.87.240
+  type: ss
+-
+  type: vless
+  name: 🇨🇦 CA-45 · 332ms
+  server: 104.17.136.102
+  port: 2087
+  uuid: 51a0af77-a60c-4d9b-81a4-f50e1b38d90b
+  udp: true
+  tls: true
+  skip-cert-verify: false
+  client-fingerprint: chrome
+  network: ws
+  ws-opts:
+    path: /
+    headers:
+      Host: rezanoori4295.pages.dev
+-
+  name: 🇨🇦 CA-46 · 364ms
+  port: 9443
+  server: 198.44.142.27
+  skip-cert-verify: true
+  sub_tag: P002-260618
+  tls: true
+  type: http
+  udp: true
+  x-toolall-mihomo: true
+-
+  alpn:
+    - h3
+  auth: 57beeeb0-03fc-4fc9-94da-7604488a7134
+  down: 200
+  name: 🇯🇵 JP-06 · 441ms
+  obfs: salamander
+  obfs-password: yhlbhcysaba0wtn1
+  password: 57beeeb0-03fc-4fc9-94da-7604488a7134
+  port: 443
+  server: nb5rb.hikigo.com
+  skip-cert-verify: true
+  sni: nb5rb.hikigo.com
+  type: hysteria2
+  udp: true
+  up: 100
+-
+  name: 🇯🇵 JP-07 · 455ms
+  server: nu2rb.supertoolify.com
+  port: 443
+  type: trojan
+  password: 57beeeb0-03fc-4fc9-94da-7604488a7134
+  sni: nu2rb.supertoolify.com
+  skip-cert-verify: true
+  udp: true
+-
+  name: 🇯🇵 JP-08 · 461ms
+  network: tcp
+  password: 57beeeb0-03fc-4fc9-94da-7604488a7134
+  port: 443
+  server: nu2rb.supertoolify.com
+  skip-cert-verify: true
+  sni: nu2rb.supertoolify.com
+  type: trojan
+  udp: true
+-
+  name: 🇯🇵 JP-09 · 468ms
+  type: vless
+  network: tcp
+  server: 43.133.167.153
+  port: 443
+  uuid: 516f305b-abb4-4e20-f70f-322ee3d7177d
+  servername: r.bing.com
+  skip-cert-verify: true
+  tls: true
+  udp: true
+  tfo: false
+  client-fingerprint: chrome
+  flow: xtls-rprx-vision
+-
+  name: 🇸🇬 SG-01 · 492ms
+  server: 149.88.106.73
+  port: 19999
+  type: ss
+  cipher: aes-256-gcm
+  password: "ZRpgaBeGxtENIXgvhpkZBKz9GnWRS2dYcx9O+a2iwN4="
+-
   cipher: 2022-blake3-chacha20-poly1305
-  name: 🇸🇬 SG-02 · 678ms
+  name: 🇸🇬 SG-02 · 493ms
   password: "c11JMfCMQ3Y4aGlhMX5LrMpM13uvw+UVbjGfHP+eKkY="
   port: 56927
   server: 168.138.177.98
   type: ss
 -
-  type: ss
-  name: 🇸🇬 SG-03 · 679ms
-  server: 149.88.106.73
-  port: 19999
-  password: "ZRpgaBeGxtENIXgvhpkZBKz9GnWRS2dYcx9O+a2iwN4="
-  cipher: aes-256-gcm
-  udp: true
-  tls: false
-  skip-cert-verify: false
--
-  cipher: aes-256-gcm
-  name: 🇸🇬 SG-04 · 681ms
-  password: "ZRpgaBeGxtENIXgvhpkZBKz9GnWRS2dYcx9O+a2iwN4="
-  port: 19999
-  server: 15.235.182.183
-  type: ss
--
-  type: vmess
-  name: 🇸🇬 SG-05 · 684ms
-  server: ww11.levikogjgfdd.ir
-  port: 18000
-  uuid: f8c8dc3d-0d37-46b0-8b34-a7232882fcfe
-  cipher: auto
-  alterId: 0
-  udp: true
-  tls: false
-  skip-cert-verify: false
--
-  cipher: aes-256-gcm
-  name: 🇸🇬 SG-06 · 686ms
-  password: "ZRpgaBeGxtENIXgvhpkZBKz9GnWRS2dYcx9O+a2iwN4="
-  port: 19999
-  server: 149.88.107.74
-  type: ss
--
-  name: 🇯🇵 JP-07 · 687ms
-  password: u63SxILNwtrQZ7Y1ZrFaZfsA
-  port: 8443
-  server: 8.211.175.236
-  skip-cert-verify: true
-  sni: 8.211.175.236
-  tls: false
-  type: hysteria2
--
-  cipher: aes-256-gcm
-  name: 🇸🇬 SG-07 · 688ms
-  password: "ZRpgaBeGxtENIXgvhpkZBKz9GnWRS2dYcx9O+a2iwN4="
-  port: 19999
-  server: 149.88.107.47
-  type: ss
--
-  type: vmess
-  name: 🇸🇬 SG-08 · 688ms
-  server: 149.88.23.202
-  port: 18000
-  uuid: f8c8dc3d-0d37-46b0-8b34-a7232882fcfe
-  cipher: auto
-  alterId: 0
-  udp: true
-  tls: false
-  skip-cert-verify: false
--
-  cipher: aes-256-gcm
-  name: 🇸🇬 SG-09 · 689ms
-  password: "ZRpgaBeGxtENIXgvhpkZBKz9GnWRS2dYcx9O+a2iwN4="
-  port: 19999
-  server: 15.235.164.133
-  type: ss
--
-  cipher: aes-256-gcm
-  name: 🇸🇬 SG-10 · 690ms
-  password: "ZRpgaBeGxtENIXgvhpkZBKz9GnWRS2dYcx9O+a2iwN4="
-  port: 19999
-  server: 149.88.106.74
-  type: ss
--
-  name: 🇸🇬 SG-11 · 691ms
-  type: vmess
-  network: tcp
-  server: 149.88.23.202
-  port: 18000
-  uuid: f8c8dc3d-0d37-46b0-8b34-a7232882fcfe
-  udp: true
-  alterId: 0
-  cipher: auto
--
-  type: vmess
-  name: 🇸🇬 SG-12 · 696ms
-  server: 149.88.23.207
-  port: 18000
-  uuid: f8c8dc3d-0d37-46b0-8b34-a7232882fcfe
-  cipher: auto
-  alterId: 0
-  udp: true
-  tls: false
-  skip-cert-verify: false
--
-  name: 🇸🇬 SG-13 · 698ms
-  type: vmess
-  network: tcp
-  server: 149.88.23.207
-  port: 18000
-  uuid: f8c8dc3d-0d37-46b0-8b34-a7232882fcfe
-  udp: true
-  alterId: 0
-  cipher: auto
--
-  type: vmess
-  name: 🇰🇷 KR-02 · 724ms
-  server: 129.154.61.196
-  port: 800
-  uuid: a915b1d6-cf28-4dc8-e4b4-e09c48c37ec0
-  cipher: auto
-  alterId: 0
-  udp: true
-  tls: false
-  skip-cert-verify: false
--
-  type: trojan
-  name: 🇰🇷 KR-03 · 795ms
-  server: 158.247.253.243
-  port: 443
-  password: 0ab6c98dae3b48e8b9c4a776b6c9c19a
-  udp: true
-  tls: true
-  servername: connectgraduateswithjobopeningsandgrowprofessionally.com
-  sni: connectgraduateswithjobopeningsandgrowprofessionally.com
-  skip-cert-verify: false
--
-  name: 🇨🇦 CA-56 · 817ms
-  type: vless
-  network: ws
-  server: 104.18.151.231
-  port: 443
-  uuid: eaf76557-2219-4799-8171-d7020adfefd0
-  servername: delicate-hall-bf16.vpndkah.workers.dev
-  skip-cert-verify: false
-  tls: true
-  udp: true
-  tfo: false
-  client-fingerprint: chrome
-  ws-opts:
-    headers:
-      Host: delicate-hall-bf16.vpndkah.workers.dev
-    path: /ws
--
-  name: 🇰🇷 KR-04 · 828ms
-  password: 0ab6c98dae3b48e8b9c4a776b6c9c19a
-  port: 443
-  server: 158.247.253.243
-  skip-cert-verify: true
-  sni: connectgraduateswithjobopeningsandgrowprofessionally.com
-  type: trojan
--
-  name: 🇭🇰 HK-04 · 831ms
-  password: 12012
-  port: 12012
-  server: 47.242.93.89
-  skip-cert-verify: true
-  sni: ali-hk.b-gfw.cfd
-  type: trojan
--
-  cipher: aes-256-gcm
-  name: 🇯🇵 JP-08 · 835ms
-  password: 3eOFeNssde7PYYMv
-  port: 80
-  server: 84.247.155.196
-  type: ss
--
-  name: 🇨🇦 CA-57 · 855ms
-  type: vless
-  network: ws
-  server: 104.18.151.231
-  port: 2053
-  uuid: eaf76557-2219-4799-8171-d7020adfefd0
-  servername: twilight-frost-15b0.yigom67484.workers.dev
-  skip-cert-verify: false
-  tls: true
-  udp: true
-  tfo: false
-  client-fingerprint: chrome
-  ws-opts:
-    headers:
-      Host: twilight-frost-15b0.yigom67484.workers.dev
-    path: /ws
--
-  name: 🇭🇰 HK-05 · 891ms
-  password: H7mP2xY9kJ4nQ8wR5tF6vB3z
-  port: 443
-  server: vpn-hk-004.fastervpn.world
-  skip-cert-verify: true
-  sni: vpn-hk-004.fastervpn.world
-  tls: false
-  type: hysteria2
--
-  name: 🇸🇬 SG-14 · 900ms
+  name: 🇸🇬 SG-03 · 493ms
   server: 68.183.227.4
   port: 8080
   type: ss
   cipher: rc4-md5
   password: 14fFPrbezE3HDZzsMOr6
 -
-  name: 🇭🇰 HK-06 · 907ms
+  cipher: aes-256-gcm
+  name: 🇸🇬 SG-04 · 502ms
+  password: "ZRpgaBeGxtENIXgvhpkZBKz9GnWRS2dYcx9O+a2iwN4="
+  port: 19999
+  server: 15.235.182.183
+  type: ss
+-
+  name: 🇸🇬 SG-05 · 503ms
+  type: vmess
+  network: tcp
+  server: 149.88.23.207
+  port: 18000
+  uuid: f8c8dc3d-0d37-46b0-8b34-a7232882fcfe
+  udp: true
+  alterId: 0
+  cipher: auto
+-
+  cipher: aes-256-gcm
+  name: 🇸🇬 SG-06 · 507ms
+  password: "ZRpgaBeGxtENIXgvhpkZBKz9GnWRS2dYcx9O+a2iwN4="
+  port: 19999
+  server: 149.88.107.47
+  type: ss
+-
+  cipher: aes-256-gcm
+  name: 🇸🇬 SG-07 · 508ms
+  password: "ZRpgaBeGxtENIXgvhpkZBKz9GnWRS2dYcx9O+a2iwN4="
+  port: 19999
+  server: 149.88.107.74
+  type: ss
+-
+  cipher: aes-256-gcm
+  name: 🇸🇬 SG-08 · 509ms
+  password: "ZRpgaBeGxtENIXgvhpkZBKz9GnWRS2dYcx9O+a2iwN4="
+  port: 19999
+  server: 149.88.106.74
+  type: ss
+-
+  cipher: aes-256-gcm
+  name: 🇸🇬 SG-09 · 518ms
+  password: "ZRpgaBeGxtENIXgvhpkZBKz9GnWRS2dYcx9O+a2iwN4="
+  port: 19999
+  server: 51.79.228.131
+  type: ss
+-
+  cipher: aes-256-gcm
+  name: 🇸🇬 SG-10 · 528ms
+  password: "ZRpgaBeGxtENIXgvhpkZBKz9GnWRS2dYcx9O+a2iwN4="
+  port: 19999
+  server: 15.235.164.133
+  type: ss
+-
+  name: 🇰🇷 KR-01 · 528ms
+  server: 211.178.105.134
+  port: 6123
+  type: ss
+  cipher: aes-256-cfb
+  password: "qwerREWQ@@"
+-
+  name: 🇸🇬 SG-11 · 557ms
+  type: vmess
+  network: tcp
+  server: 149.88.23.202
+  port: 18000
+  uuid: f8c8dc3d-0d37-46b0-8b34-a7232882fcfe
+  udp: true
+  alterId: 0
+  cipher: auto
+-
+  name: 🇰🇷 KR-02 · 597ms
+  type: vmess
+  network: ws
+  server: 132.145.80.230
+  port: 80
+  uuid: 5155860e-d07d-46c3-9128-3afbd84626c7
+  udp: true
+  alterId: 0
+  cipher: auto
+  ws-opts:
+    headers:
+      Host: kr02.a0a.xyz
+    path: /cctv13.m3u8
+-
+  name: 🇭🇰 HK-02 · 601ms
+  obfs: salamander
+  obfs-password: 7M4RXPFcQyQEGbkxBPfXo4bilMhCW2U9
+  password: eBTe6Ax2pUts8oMEWoYVDfnSlHfkLffQ
+  port: 5010
+  server: 152.32.254.68
+  skip-cert-verify: false
+  sni: nas.aizhzo.com
+  tls: false
+  type: hysteria2
+-
+  name: 🇸🇬 SG-12 · 643ms
+  server: 77.93.89.2
+  port: 443
+  type: trojan
+  password: 57beeeb0-03fc-4fc9-94da-7604488a7134
+  sni: bgsg1.hikigo.com
+  skip-cert-verify: true
+  udp: true
+-
+  name: 🇨🇦 CA-47 · 644ms
+  type: vless
+  network: ws
+  server: 172.67.155.222
+  port: 443
+  uuid: 82b279c6-5cba-3a96-f8bd-780a00000035
+  servername: pi7ews-woj41w-7wx0gk.ho3ein13-3af.workers.dev
+  skip-cert-verify: false
+  tls: true
+  udp: true
+  tfo: false
+  client-fingerprint: chrome
+  ws-opts:
+    headers:
+      Host: pi7ews-woj41w-7wx0gk.ho3ein13-3af.workers.dev
+    path: /sync
+-
+  cipher: aes-256-gcm
+  name: 🇯🇵 JP-10 · 661ms
+  password: 3eOFeNssde7PYYMv
+  port: 80
+  server: 84.247.155.196
+  type: ss
+-
+  name: 🇯🇵 JP-11 · 665ms
+  type: vless
+  network: ws
+  server: 103.201.130.126
+  port: 443
+  uuid: 39303679-4e68-4233-8def-8f4f9e48d611
+  servername: tt-9nz.pages.dev
+  tls: true
+  client-fingerprint: chrome
+  ws-opts:
+    headers:
+      Host: tt-9nz.pages.dev
+    path: /item/favourites
+-
+  name: 🇭🇰 HK-03 · 676ms
   server: 116.213.43.43
   port: 11102
   type: vless
@@ -1112,109 +945,7 @@ proxies:
   network: tcp
   udp: true
 -
-  name: 🇭🇰 HK-07 · 912ms
-  server: 116.213.43.43
-  port: 11107
-  type: vless
-  uuid: 08a37d1f-7bf1-4b5d-a2ec-5ced6a633d7f
-  tls: true
-  tfo: false
-  flow: xtls-rprx-vision
-  skip-cert-verify: true
-  reality-opts:
-    public-key: 6GRzkPbs12fKBdBBFzs5dmtmbSHCXMngUCBKLrXYm3U
-    short-id: e2ccd8eedcbee2ce
-  servername: www.apple.com
-  client-fingerprint: chrome
-  network: tcp
-  udp: true
--
-  type: vless
-  name: 🇸🇬 SG-15 · 920ms
-  server: 47.84.226.221
-  port: 443
-  uuid: 49b91402-f8e3-4390-9d7b-b7eddc2684a4
-  flow: xtls-rprx-vision
-  udp: true
-  tls: true
-  servername: www.samsung.com
-  sni: www.samsung.com
-  skip-cert-verify: false
-  client-fingerprint: chrome
-  reality-opts:
-    public-key: gVQsvRtzd77zlvKW4Gk0dAOJNPRa7cfN1-jVe_AJ8Bo
-    short-id: e1c483f9d4437d42
--
-  name: 🇭🇰 HK-08 · 920ms
-  server: 116.213.43.43
-  port: 11103
-  type: vless
-  uuid: bb836d81-d0c5-4f01-a584-806cdf65e36a
-  tls: true
-  tfo: false
-  flow: xtls-rprx-vision
-  skip-cert-verify: true
-  reality-opts:
-    public-key: 5NNdXPMTBLP-xeDKFwcG-j6u-c4DhXIfnlHMqMJZ4n4
-    short-id: 9564e1a7a1cf8b3a
-  servername: www.apple.com
-  client-fingerprint: chrome
-  network: tcp
-  udp: true
--
-  name: 🇸🇬 SG-16 · 925ms
-  password: qQe1z5kU8kN6SlKnDt9Ru3Qp
-  port: 443
-  server: 13.212.78.215
-  skip-cert-verify: true
-  sni: vpn-sg-001.fastervpn.world
-  tls: false
-  type: hysteria2
--
-  name: 🇸🇬 SG-17 · 926ms
-  server: 47.84.39.7
-  port: 443
-  type: vless
-  uuid: a6fd460c-88bd-4425-bb56-2b73d29455cc
-  tls: true
-  tfo: false
-  flow: xtls-rprx-vision
-  skip-cert-verify: true
-  reality-opts:
-    public-key: EXPjsObdfDnKuRmw4-A9_G4k-WP2cUXuuvUo8It1sAo
-    short-id: 4d1244cd42a20e6c
-  servername: www.amazon.com
-  client-fingerprint: chrome
-  network: tcp
-  udp: true
--
-  type: ss
-  name: 🇯🇵 JP-09 · 927ms
-  server: jpa.123069.xyz
-  port: 53758
-  password: Bwlqh7GcFB
-  cipher: aes-128-gcm
-  udp: true
-  tls: false
-  skip-cert-verify: false
--
-  type: vless
-  name: 🇸🇬 SG-18 · 950ms
-  server: 67.159.52.81
-  port: 443
-  uuid: a16bd0e2-ff2e-4e4c-a955-0c684255a065
-  flow: xtls-rprx-vision
-  udp: true
-  tls: true
-  servername: sg.fasti.win
-  sni: sg.fasti.win
-  skip-cert-verify: false
-  client-fingerprint: chrome
-  reality-opts:
-    public-key: -YTGWg5DjsLDyaDfr1D83kiUK22LVcrK3yC53lqqigs
-    short-id: feedbacc
--
-  name: 🇰🇷 KR-05 · 959ms
+  name: 🇰🇷 KR-03 · 692ms
   network: ws
   port: 25555
   server: 152.69.226.63
@@ -1224,34 +955,108 @@ proxies:
   ws-opts:
     path: /
 -
-  type: vmess
-  name: 🇨🇦 CA-58 · 998ms
-  server: 162.159.130.234
-  port: 2083
-  uuid: ac251237-576f-40c8-a543-554960c958b1
-  cipher: auto
+  alpn:
+    - ""
   alterId: 0
+  cipher: auto
+  http-opts:
+    method: GET
+    path:
+      - /
+  name: 🇰🇷 KR-04 · 694ms
+  network: http
+  port: 80
+  server: 43.155.199.22
+  skip-cert-verify: true
+  tls: false
+  type: vmess
   udp: true
-  tls: true
-  servername: or3.sfacg.uk
-  sni: or3.sfacg.uk
-  skip-cert-verify: false
-  network: ws
-  ws-opts:
-    path: /or3
-    headers:
-      Host: or3.sfacg.uk
+  uuid: 3722ad16-f3e1-4406-b04a-929b529d8e0d
 -
-  name: 🇭🇰 HK-09 · 1097ms
-  server: ibsdsf.df6h451rh.xin
+  name: 🇨🇦 CA-48 · 720ms
+  type: vless
+  network: ws
+  server: 172.67.131.125
+  port: 2083
+  uuid: f418674e-f518-4318-8ff9-e10000000046
+  servername: smart-edge-424.arti98399-1905.workers.dev
+  skip-cert-verify: false
+  tls: true
+  udp: true
+  tfo: false
+  client-fingerprint: chrome
+  ws-opts:
+    headers:
+      Host: smart-edge-424.arti98399-1905.workers.dev
+    path: /sync
+-
+  name: 🇭🇰 HK-04 · 755ms
+  type: vless
+  network: tcp
+  server: 156.245.234.97
+  port: 2096
+  uuid: 93c0244e-6eb2-41bc-ad9c-1a7606747e13
+  servername: lyhk.mihoyo.site
+  skip-cert-verify: true
+  tls: true
+  udp: true
+  tfo: false
+  client-fingerprint: chrome
+  flow: xtls-rprx-vision
+-
+  name: 🇭🇰 HK-05 · 771ms
+  server: 64.118.130.152
+  port: 443
+  type: trojan
+  password: 57beeeb0-03fc-4fc9-94da-7604488a7134
+  sni: nb1hk.hikigo.com
+  skip-cert-verify: true
+  udp: true
+-
+  name: 🇰🇷 KR-05 · 772ms
+  password: 0ab6c98dae3b48e8b9c4a776b6c9c19a
+  port: 443
+  server: 158.247.253.243
+  skip-cert-verify: true
+  sni: connectgraduateswithjobopeningsandgrowprofessionally.com
+  type: trojan
+-
+  alterId: 2
+  cipher: auto
+  name: 🇭🇰 HK-06 · 776ms
+  network: ws
+  port: 60852
+  server: hkgb707.ifastcdncache.com
+  skip-cert-verify: false
+  tls: false
+  type: vmess
+  udp: true
+  uuid: f8eca8df-a1a5-4918-a194-d34112a3673f
+  ws-opts:
+    headers: {}
+    path: /
+  xudp: true
+-
+  name: 🇭🇰 HK-07 · 816ms
+  server: 5641sdds.df6h451rh.xin
   port: 443
   type: anytls
-  password: 2902c46c8493
+  password: 0324fbc29561
+  client-fingerprint: chrome
   udp: true
-  sni: docs.microsoft.com
+  sni: images.ctfassets.net
   skip-cert-verify: true
 -
-  name: 🇸🇬 SG-19 · 1126ms
+  name: 🇭🇰 HK-08 · 817ms
+  server: nb1hk.hikigo.com
+  port: 443
+  type: trojan
+  password: 57beeeb0-03fc-4fc9-94da-7604488a7134
+  sni: nb1hk.hikigo.com
+  skip-cert-verify: true
+  udp: true
+-
+  name: 🇸🇬 SG-13 · 833ms
   type: vless
   network: ws
   server: 139.162.27.96
@@ -1265,88 +1070,232 @@ proxies:
       Host: free-server.techsonic.dev
     path: /free-server.techsonic.dev
 -
-  name: 🇹🇼 TW-01 · 1195ms
-  server: rtifgjdr.df6h451rh.xin
+  name: 🇯🇵 JP-12 · 835ms
+  port: 343
+  server: 133.18.200.207
+  skip-cert-verify: true
+  sub_tag: P002-260618
+  tls: true
+  type: http
+  udp: true
+  x-toolall-mihomo: true
+-
+  name: 🇨🇦 CA-49 · 842ms
+  type: vmess
+  network: ws
+  server: 172.67.161.144
+  port: 8443
+  uuid: 60441548-b68e-43b2-8191-e3b884be4b3c
+  skip-cert-verify: true
+  tls: true
+  alterId: 0
+  cipher: auto
+  ws-opts:
+    headers:
+      Host: v2ray1.dozapp.xyz
+    path: /lMnsZUN4/
+-
+  name: 🇭🇰 HK-09 · 864ms
+  password: 2902c46c8493
+  port: 443
+  server: ibsdsf.df6h451rh.xin
+  skip-cert-verify: true
+  sni: docs.microsoft.com
+  type: anytls
+  udp: true
+-
+  name: 🇸🇬 SG-14 · 868ms
+  password: 57beeeb0-03fc-4fc9-94da-7604488a7134
+  port: 443
+  server: bgsg1.hikigo.com
+  skip-cert-verify: true
+  sni: bgsg1.hikigo.com
+  type: trojan
+  udp: true
+-
+  cipher: aes-256-gcm
+  name: 🇨🇦 CA-50 · 883ms
+  password: Y6R9pAtvxxzmGC
+  port: 5000
+  server: 51.222.200.165
+  type: ss
+-
+  name: 🇭🇰 HK-10 · 886ms
+  type: vless
+  network: ws
+  server: 45.133.73.167
+  port: 443
+  uuid: 0fc0ded7-32b3-4e36-a623-6e7670225247
+  servername: zmxoo.de5.net
+  tls: true
+  udp: true
+  client-fingerprint: chrome
+  ws-opts:
+    headers:
+      Host: zmxoo.de5.net
+    path: /html/order/torrent
+-
+  name: 🇹🇼 TW-01 · 886ms
+  password: 2902c46c8493
+  port: 443
+  server: er8u54dh.df6h451rh.xin
+  skip-cert-verify: true
+  sni: px.ads.linkedin.com
+  type: anytls
+-
+  name: 🇹🇼 TW-02 · 892ms
+  server: a54ge.df6h451rh.xin
   port: 443
   type: anytls
-  password: 2902c46c8493
+  password: 0324fbc29561
+  client-fingerprint: chrome
   udp: true
   sni: docs.microsoft.com
   skip-cert-verify: true
 -
-  name: 🇨🇦 CA-59 · 1198ms
+  alpn:
+    - http/1.1
+  client-fingerprint: chrome
+  name: 🇨🇦 CA-51 · 938ms
+  network: ws
+  port: 443
+  server: 172.67.197.170
+  servername: o685y.save-node.com
+  tls: true
+  type: vless
+  uuid: 88e79aa6-f431-4453-8dcc-652a0c747198
+  ws-opts:
+    headers:
+      Host: o685y.save-node.com
+    path: /api/se1k2rfxlsuer3ry4u6e84kl8rqp721p
+-
+  ip: 172.16.0.2/32
+  keepalive: 5
+  mtu: 1280
+  name: 🇨🇦 CA-52 · 1036ms
+  persistent-keepalive: 5
+  port: 2408
+  private-key: "QA9tXp3mpp1GVAmE1wF/KAI4vT/pj6QaLaY4Lt1sXV0="
+  public-key: "bmXOC+F1FxEMF9dyiK2H5/1SUtzH0JuVo51h2wPfgyo="
+  reserved:
+    - 149
+    - 115
+    - 173
+  server: 162.159.192.5
+  type: wireguard
+  udp: true
+  wnoise: quic
+  wnoisecount: 5
+  wnoisedelay: 5
+  wpayloadsize: 40-90
+-
+  name: 🇸🇬 SG-15 · 1226ms
+  port: 5555
+  server: 103.248.228.166
+  type: socks5
+-
+  name: 🇸🇬 SG-16 · 1357ms
+  password: 0ab6c98dae3b48e8b9c4a776b6c9c19a
+  port: 443
+  server: 15.235.184.127
+  skip-cert-verify: false
+  sni: exploredigitaljobplatformandfindonlinework.com
+  type: trojan
+-
+  name: 🇨🇦 CA-53 · 1417ms
   type: vmess
   network: ws
-  server: 104.21.0.1
-  port: 2083
-  uuid: ac251237-576f-40c8-a543-554960c958b1
+  server: 172.67.167.78
+  port: 8443
+  uuid: 60441548-b68e-43b2-8191-e3b884be4b3c
   skip-cert-verify: true
   tls: true
   alterId: 0
   cipher: auto
   ws-opts:
     headers:
-      Host: or3.sfacg.uk
-    path: /or3
+      Host: v2ray1.dozapp.xyz
+    path: /lMnsZUN4/
 -
-  name: 🇨🇦 CA-60 · 1204ms
-  type: vmess
-  network: ws
-  server: 162.159.130.234
-  port: 2083
-  uuid: ac251237-576f-40c8-a543-554960c958b1
-  skip-cert-verify: true
-  tls: true
-  alterId: 0
-  cipher: auto
-  ws-opts:
-    headers:
-      Host: or3.sfacg.uk
-    path: /or3
--
-  type: ss
-  name: 🇯🇵 JP-10 · 1213ms
+  name: 🇯🇵 JP-13 · 1617ms
   server: 84.247.155.196
   port: 443
+  type: ss
+  cipher: aes-256-gcm
   password: 3eOFeNssde7PYYMv
+-
+  alterId: 0
+  cipher: auto
+  name: 🇭🇰 HK-11 · 1806ms
+  network: ws
+  port: 16632
+  server: pdmv4.xiaoyan.io
+  skip-cert-verify: false
+  tls: false
+  type: vmess
+  udp: true
+  uuid: 904f0569-8695-466f-97cf-0de2face1b46
+  ws-opts:
+    headers:
+      Host: f9309cc88637c26f552a1a64fb311cae.mobgslb.tbcache.com
+    path: /
+  xudp: true
+-
+  type: ss
+  name: 🇭🇰 HK-12 · 1939ms
+  server: 43.161.217.165
+  port: 80
+  password: MySecretPass123
   cipher: aes-256-gcm
   udp: true
   tls: false
   skip-cert-verify: false
 -
-  type: vmess
-  name: 🇭🇰 HK-10 · 1250ms
-  server: 156.245.232.239
-  port: 35043
-  uuid: b15e481d-17e4-41a8-84c2-23d4f0514d9a
-  cipher: auto
-  alterId: 0
+  name: 🇰🇷 KR-06 · 2739ms
+  server: p141.panda001.net
+  port: 4652
+  type: ss
+  cipher: aes-256-cfb
+  password: "qwerREWQ@@"
+-
+  type: ss
+  name: 🇭🇰 HK-13 · 2769ms
+  server: 43.161.217.165
+  port: 8388
+  password: MySecretPass123
+  cipher: aes-256-gcm
   udp: true
   tls: false
   skip-cert-verify: false
-  network: ws
-  ws-opts:
-    path: /
 -
-  name: 🇭🇰 HK-11 · 1255ms
-  type: vmess
+  cipher: aes-256-gcm
+  name: 🇭🇰 HK-14 · 2845ms
+  password: AMok40FfaM+Ikwre16psBpVk6JHxsQZw
+  port: 8388
+  server: 209.248.57.105
+  type: ss
+-
+  name: 🇨🇦 CA-54 · 3215ms
+  type: vless
   network: ws
-  server: afzuv.xiaoyan.io
-  port: 16617
-  uuid: 904f0569-8695-466f-97cf-0de2face1b46
-  skip-cert-verify: true
-  alterId: 0
-  cipher: auto
+  server: 104.18.151.231
+  port: 443
+  uuid: eaf76557-2219-4799-8171-d7020adfefd0
+  servername: delicate-hall-bf16.vpndkah.workers.dev
+  skip-cert-verify: false
+  tls: true
+  udp: true
+  tfo: false
   ws-opts:
     headers:
-      Host: f9309cc88637c26f552a1a64fb311cae.mobgslb.tbcache.com
-    path: /
+      Host: delicate-hall-bf16.vpndkah.workers.dev
+    path: /ws
 -
-  name: 🇭🇰 HK-12 · 1282ms
+  name: 🇰🇷 KR-07 · 4265ms
   type: vmess
   network: ws
   server: d1eyz.xiaoyan.io
-  port: 16617
+  port: 16616
   uuid: 904f0569-8695-466f-97cf-0de2face1b46
   skip-cert-verify: true
   alterId: 0
@@ -1356,336 +1305,13 @@ proxies:
       Host: f9309cc88637c26f552a1a64fb311cae.mobgslb.tbcache.com
     path: /
 -
-  alpn:
-    - ""
-  alterId: 0
-  cipher: auto
-  http-opts:
-    headers:
-      Host:
-        - openai.com
-    method: GET
-    path:
-      - /QQqun-737805443
-  name: 🇭🇰 HK-13 · 1309ms
-  network: http
-  port: 52080
-  server: 47.242.81.94
-  skip-cert-verify: true
-  tls: false
-  type: vmess
-  udp: true
-  uuid: e47b9f77-60e4-4738-8d53-772b6002e146
--
-  name: 🇨🇦 CA-61 · 1322ms
-  type: vmess
-  network: ws
-  server: 104.17.0.1
-  port: 2083
-  uuid: ac251237-576f-40c8-a543-554960c958b1
-  skip-cert-verify: true
-  tls: true
-  alterId: 0
-  cipher: auto
-  ws-opts:
-    headers:
-      Host: or3.sfacg.uk
-    path: /or3
--
-  type: vless
-  name: 🇭🇰 HK-14 · 1357ms
-  server: 45.192.193.54
-  port: 35600
-  uuid: 8614bde7-34cf-4413-8360-e96f1b960528
-  flow: xtls-rprx-vision
-  udp: true
-  tls: true
-  servername: www.iij.ad.jp
-  sni: www.iij.ad.jp
-  skip-cert-verify: false
-  client-fingerprint: chrome
-  reality-opts:
-    public-key: fJwbUNPAxu-CcoWnzWrvtDkX7QMDvJwFGWzJ3lDcFC4
--
-  name: 🇯🇵 JP-11 · 1367ms
-  server: jpk.wentibuxiaobuda.xyz
-  port: 443
-  type: hysteria2
-  password: 36187bef1c708c82fd4099b9d70116ffd8c0f1f5bfd19cbb319eeb67899714f6
-  auth: 36187bef1c708c82fd4099b9d70116ffd8c0f1f5bfd19cbb319eeb67899714f6
-  sni: jpk.wentibuxiaobuda.xyz
-  skip-cert-verify: true
-  udp: true
--
-  name: 🇯🇵 JP-12 · 1398ms
-  server: 156.246.93.237
-  port: 17443
-  type: trojan
-  password: LDSLDq9XlM4-92pvTPOUuklMb99BLOCrdyejsupEca4
-  sni: jpk.wentibuxiaobuda.xyz
-  skip-cert-verify: true
--
-  name: 🇭🇰 HK-15 · 1420ms
-  server: 116.213.43.43
-  port: 11101
-  type: vless
-  uuid: ca69a29d-60ef-433a-91bc-27537be993c8
-  tls: true
-  tfo: false
-  flow: xtls-rprx-vision
-  skip-cert-verify: true
-  reality-opts:
-    public-key: 2eUT-b2e2lghUKWM3qf8uI3_Dphg9whKrQ08o4S-bzw
-    short-id: 82f99830e7b834e2
-  servername: www.apple.com
-  client-fingerprint: chrome
-  network: tcp
-  udp: true
--
-  type: ss
-  name: 🇯🇵 JP-13 · 1422ms
-  server: 168.138.205.100
-  port: 53758
-  password: Bwlqh7GcFB
-  cipher: aes-128-gcm
-  udp: true
-  tls: false
-  skip-cert-verify: false
--
-  cipher: aes-256-gcm
-  name: 🇨🇦 CA-62 · 1440ms
-  password: cdBIDV42DCwnfIN
-  port: 8118
-  server: 51.79.85.185
-  type: ss
--
-  name: 🇭🇰 HK-16 · 1443ms
-  obfs: salamander
-  obfs-password: c8827ab99e316c5bd414e21afa915ddf
-  password: 8294f130408299df8cab08c80bf6f819
-  port: 443
-  server: 24.233.8.109
-  skip-cert-verify: true
-  sni: www.bing.com
-  tls: false
-  type: hysteria2
--
-  type: vmess
-  name: 🇭🇰 HK-17 · 1464ms
-  server: 47.244.120.197
-  port: 36703
-  uuid: 45b83519-9c4f-4052-a11b-02e017b636d4
-  cipher: auto
-  alterId: 0
-  udp: true
-  tls: false
-  skip-cert-verify: false
-  network: ws
-  ws-opts:
-    path: "/arki?ed=2048"
--
-  type: vmess
-  name: 🇭🇰 HK-18 · 1479ms
-  server: 47.244.120.197
-  port: 44867
-  uuid: 845e6b08-2919-4290-ade0-5dc7dcea59ca
-  cipher: auto
-  alterId: 0
-  udp: true
-  tls: false
-  servername: 47.244.120.197
-  sni: 47.244.120.197
-  skip-cert-verify: false
-  network: ws
-  ws-opts:
-    path: /arki
-    headers:
-      Host: 47.244.120.197
--
-  type: vmess
-  name: 🇭🇰 HK-19 · 1538ms
-  server: 47.244.120.197
-  port: 23026
-  uuid: b9de1bc9-baa7-41ac-86f7-ccd59695cb21
-  cipher: auto
-  alterId: 0
-  udp: true
-  tls: false
-  skip-cert-verify: false
-  network: ws
-  ws-opts:
-    path: /arki
--
-  type: vmess
-  name: 🇨🇦 CA-63 · 1583ms
-  server: 162.159.135.234
-  port: 2083
-  uuid: ac251237-576f-40c8-a543-554960c958b1
-  cipher: auto
-  alterId: 0
-  udp: true
-  tls: true
-  servername: or3.sfacg.uk
-  sni: or3.sfacg.uk
-  skip-cert-verify: false
-  network: ws
-  ws-opts:
-    path: /or3
-    headers:
-      Host: or3.sfacg.uk
--
-  name: 🇨🇦 CA-64 · 1602ms
-  type: vmess
-  server: 162.159.130.234
-  port: 2083
-  cipher: auto
-  uuid: ac251237-576f-40c8-a543-554960c958b1
-  alterId: 0
-  tls: true
-  skip-cert-verify: true
-  network: ws
-  ws-opts:
-    path: /or3
-    headers:
-      host: or3.sfacg.uk
--
-  type: vmess
-  name: 🇰🇷 KR-06 · 1793ms
-  server: 132.145.80.230
-  port: 80
-  uuid: 5155860e-d07d-46c3-9128-3afbd84626c7
-  cipher: auto
-  alterId: 0
-  udp: true
-  tls: false
-  skip-cert-verify: false
-  network: ws
-  ws-opts:
-    path: /cctv13.m3u8
--
-  type: vmess
-  name: 🇨🇦 CA-65 · 1817ms
-  server: cdn.sfacg.uk
-  port: 2083
-  uuid: ac251237-576f-40c8-a543-554960c958b1
-  cipher: auto
-  alterId: 0
-  udp: true
-  tls: true
-  servername: or3.sfacg.uk
-  sni: or3.sfacg.uk
-  skip-cert-verify: false
-  network: ws
-  ws-opts:
-    path: /or3
-    headers:
-      Host: or3.sfacg.uk
--
-  name: 🇨🇦 CA-66 · 1857ms
-  type: vmess
-  server: or3.sfacg.uk
-  port: 2083
-  cipher: auto
-  uuid: ac251237-576f-40c8-a543-554960c958b1
-  alterId: 0
-  tls: true
-  skip-cert-verify: true
-  network: ws
-  ws-opts:
-    path: /or3
-    headers:
-      host: or3.sfacg.uk
--
-  type: vless
-  name: 🇯🇵 JP-14 · 2307ms
-  server: 43.170.8.95
-  port: 443
-  uuid: 4e4f1f70-5e56-4a76-bb9d-db087f4690c4
-  udp: true
-  tls: true
-  servername: jp3.yohototo.top
-  sni: jp3.yohototo.top
-  skip-cert-verify: false
-  client-fingerprint: unsafe
-  network: ws
-  ws-opts:
-    path: /tyxyws
-    headers:
-      Host: jp3.yohototo.top
--
-  name: 🇯🇵 JP-15 · 2351ms
-  type: vless
-  network: ws
-  server: 45.153.245.217
-  port: 443
-  uuid: 4e4f1f70-5e56-4a76-bb9d-db087f4690c4
-  servername: jp3.yohototo.top
-  skip-cert-verify: false
-  tls: true
-  udp: true
-  tfo: false
-  client-fingerprint: unsafe
-  ws-opts:
-    headers:
-      Host: jp3.yohototo.top
-    path: /tyxyws
--
-  type: vless
-  name: 🇹🇼 TW-02 · 2773ms
-  server: free.fugui.lol
-  port: 47396
-  uuid: ead3595f-4020-4e76-a3ec-c248e1a2f2f7
-  flow: xtls-rprx-vision
-  tls: true
-  servername: swdist.apple.com
-  sni: swdist.apple.com
-  skip-cert-verify: false
-  client-fingerprint: chrome
-  reality-opts:
-    public-key: IjWYbHNrZb3UCQxsTJyekEOA3tHq42L6Jw3O8MmLYVQ
-    short-id: fa514b83
--
-  type: vless
-  name: 🇹🇼 TW-03 · 3798ms
-  server: free.fugui.lol
-  port: 51283
-  uuid: ead3595f-4020-4e76-a3ec-c248e1a2f2f7
-  flow: xtls-rprx-vision
-  udp: true
-  tls: true
-  servername: swdist.apple.com
-  sni: swdist.apple.com
-  skip-cert-verify: false
-  client-fingerprint: chrome
-  reality-opts:
-    public-key: IjWYbHNrZb3UCQxsTJyekEOA3tHq42L6Jw3O8MmLYVQ
-    short-id: fa514b83
--
-  name: 🇨🇦 CA-67 · 3861ms
-  type: vless
-  network: ws
-  server: 172.64.190.13
-  port: 443
-  uuid: 4e4f1f70-5e56-4a76-bb9d-db087f4690c4
-  servername: jp3.yohototo.top
-  skip-cert-verify: false
-  tls: true
-  udp: true
-  tfo: false
-  client-fingerprint: chrome
-  ws-opts:
-    headers:
-      Host: jp3.yohototo.top
-    path: /tyxyws
--
-  name: 🇰🇷 KR-07 · 4158ms
+  name: 🇰🇷 KR-08 · 4303ms
   type: vmess
   network: ws
   server: dp8yk.xiaoyan.io
   port: 16616
   uuid: 904f0569-8695-466f-97cf-0de2face1b46
-  skip-cert-verify: false
-  tls: false
+  skip-cert-verify: true
   alterId: 0
   cipher: auto
   ws-opts:
@@ -1693,29 +1319,61 @@ proxies:
       Host: f9309cc88637c26f552a1a64fb311cae.mobgslb.tbcache.com
     path: /
 -
-  cipher: aes-256-gcm
-  name: 🇨🇦 CA-68 · 5809ms
-  password: kDWvXYZoTBcGkC4
-  port: 8882
-  server: 51.79.49.116
-  type: ss
--
-  name: 🇭🇰 HK-20 · 7559ms
-  server: 116.213.43.43
-  port: 11105
   type: vless
-  uuid: 31d5b95e-aff2-4ffb-8160-b5ae941b46f6
-  tls: true
-  tfo: false
+  name: 🇭🇰 HK-15 · 4564ms
+  server: 116.213.43.43
+  port: 11107
+  uuid: 08a37d1f-7bf1-4b5d-a2ec-5ced6a633d7f
   flow: xtls-rprx-vision
-  skip-cert-verify: true
+  udp: true
+  tls: true
+  servername: www.apple.com
+  sni: www.apple.com
+  skip-cert-verify: false
+  client-fingerprint: chrome
   reality-opts:
-    public-key: ghxoNrFX488_gXprrfDt-03Lkxj3YFqS2q-DDw-m6yE
-    short-id: d9180a5730e950d2
+    public-key: 6GRzkPbs12fKBdBBFzs5dmtmbSHCXMngUCBKLrXYm3U
+    short-id: e2ccd8eedcbee2ce
+-
+  name: 🇭🇰 HK-16 · 4655ms
+  server: 116.213.43.43
+  port: 11106
+  type: vless
+  uuid: 2e7bd251-52be-4ffa-b79e-108e1fe07185
+  tls: true
+  flow: xtls-rprx-vision
+  reality-opts:
+    public-key: -13uTSuqk44pCU0x6yvldaskzyRIlO2ihmDvM0FsBns
+    short-id: da12e31124830d42
   servername: www.apple.com
   client-fingerprint: chrome
   network: tcp
   udp: true
+-
+  name: 🇯🇵 JP-14 · 4838ms
+  password: u63SxILNwtrQZ7Y1ZrFaZfsA
+  port: 8443
+  server: 8.211.175.236
+  skip-cert-verify: true
+  sni: 8.211.175.236
+  tls: false
+  type: hysteria2
+-
+  type: vless
+  name: 🇭🇰 HK-17 · 5003ms
+  server: 116.213.43.43
+  port: 11101
+  uuid: ca69a29d-60ef-433a-91bc-27537be993c8
+  flow: xtls-rprx-vision
+  udp: true
+  tls: true
+  servername: www.apple.com
+  sni: www.apple.com
+  skip-cert-verify: false
+  client-fingerprint: chrome
+  reality-opts:
+    public-key: 2eUT-b2e2lghUKWM3qf8uI3_Dphg9whKrQ08o4S-bzw
+    short-id: 82f99830e7b834e2
 proxy-groups:
 -
   name: 🚀 节点选择
@@ -1730,138 +1388,117 @@ proxy-groups:
     - 🇰🇷 韩国
     - 🌍 其他
     - 🎯 全球直连
-    - 🇨🇦 CA-01 · 68ms
-    - 🇨🇦 CA-02 · 74ms
-    - 🇨🇦 CA-03 · 91ms
-    - 🇨🇦 CA-04 · 94ms
-    - 🇨🇦 CA-05 · 98ms
-    - 🇨🇦 CA-06 · 108ms
-    - 🇨🇦 CA-07 · 109ms
-    - 🇨🇦 CA-08 · 144ms
-    - 🇨🇦 CA-09 · 173ms
-    - 🇨🇦 CA-10 · 175ms
-    - 🇨🇦 CA-11 · 58ms
-    - 🇨🇦 CA-12 · 76ms
-    - 🇨🇦 CA-13 · 79ms
-    - 🇨🇦 CA-14 · 82ms
-    - 🇭🇰 HK-01 · 85ms
-    - 🇨🇦 CA-15 · 86ms
-    - 🇨🇦 CA-16 · 87ms
-    - 🇨🇦 CA-17 · 87ms
-    - 🇨🇦 CA-18 · 87ms
-    - 🇨🇦 CA-19 · 88ms
-    - 🇭🇰 HK-02 · 88ms
-    - 🇨🇦 CA-20 · 89ms
-    - 🇨🇦 CA-21 · 92ms
-    - 🇨🇦 CA-22 · 93ms
-    - 🇨🇦 CA-23 · 93ms
-    - 🇨🇦 CA-24 · 101ms
-    - 🇨🇦 CA-25 · 103ms
-    - 🇨🇦 CA-26 · 105ms
-    - 🇨🇦 CA-27 · 112ms
-    - 🇨🇦 CA-28 · 119ms
-    - 🇨🇦 CA-29 · 120ms
-    - 🇨🇦 CA-30 · 123ms
-    - 🇨🇦 CA-31 · 129ms
-    - 🇨🇦 CA-32 · 130ms
-    - 🇨🇦 CA-33 · 132ms
-    - 🇨🇦 CA-34 · 138ms
-    - 🇨🇦 CA-35 · 143ms
-    - 🇨🇦 CA-36 · 148ms
-    - 🇨🇦 CA-37 · 156ms
-    - 🇨🇦 CA-38 · 159ms
-    - 🇨🇦 CA-39 · 159ms
-    - 🇨🇦 CA-40 · 161ms
-    - 🇭🇰 HK-03 · 162ms
-    - 🇨🇦 CA-41 · 162ms
-    - 🇨🇦 CA-42 · 168ms
-    - 🇨🇦 CA-43 · 177ms
-    - 🇨🇦 CA-44 · 177ms
-    - 🇨🇦 CA-45 · 186ms
-    - 🇨🇦 CA-46 · 324ms
-    - 🇨🇦 CA-47 · 353ms
-    - 🇨🇦 CA-48 · 360ms
-    - 🇨🇦 CA-49 · 424ms
-    - 🇨🇦 CA-50 · 461ms
-    - 🇯🇵 JP-01 · 464ms
-    - 🇯🇵 JP-02 · 464ms
-    - 🇯🇵 JP-03 · 467ms
-    - 🇯🇵 JP-04 · 497ms
-    - 🇨🇦 CA-51 · 512ms
-    - 🇨🇦 CA-52 · 544ms
-    - 🇨🇦 CA-53 · 585ms
-    - 🇨🇦 CA-54 · 601ms
-    - 🇰🇷 KR-01 · 636ms
-    - 🇨🇦 CA-55 · 639ms
-    - 🇯🇵 JP-05 · 654ms
-    - 🇯🇵 JP-06 · 665ms
-    - 🇸🇬 SG-01 · 673ms
-    - 🇸🇬 SG-02 · 678ms
-    - 🇸🇬 SG-03 · 679ms
-    - 🇸🇬 SG-04 · 681ms
-    - 🇸🇬 SG-05 · 684ms
-    - 🇸🇬 SG-06 · 686ms
-    - 🇯🇵 JP-07 · 687ms
-    - 🇸🇬 SG-07 · 688ms
-    - 🇸🇬 SG-08 · 688ms
-    - 🇸🇬 SG-09 · 689ms
-    - 🇸🇬 SG-10 · 690ms
-    - 🇸🇬 SG-11 · 691ms
-    - 🇸🇬 SG-12 · 696ms
-    - 🇸🇬 SG-13 · 698ms
-    - 🇰🇷 KR-02 · 724ms
-    - 🇰🇷 KR-03 · 795ms
-    - 🇨🇦 CA-56 · 817ms
-    - 🇰🇷 KR-04 · 828ms
-    - 🇭🇰 HK-04 · 831ms
-    - 🇯🇵 JP-08 · 835ms
-    - 🇨🇦 CA-57 · 855ms
-    - 🇭🇰 HK-05 · 891ms
-    - 🇸🇬 SG-14 · 900ms
-    - 🇭🇰 HK-06 · 907ms
-    - 🇭🇰 HK-07 · 912ms
-    - 🇸🇬 SG-15 · 920ms
-    - 🇭🇰 HK-08 · 920ms
-    - 🇸🇬 SG-16 · 925ms
-    - 🇸🇬 SG-17 · 926ms
-    - 🇯🇵 JP-09 · 927ms
-    - 🇸🇬 SG-18 · 950ms
-    - 🇰🇷 KR-05 · 959ms
-    - 🇨🇦 CA-58 · 998ms
-    - 🇭🇰 HK-09 · 1097ms
-    - 🇸🇬 SG-19 · 1126ms
-    - 🇹🇼 TW-01 · 1195ms
-    - 🇨🇦 CA-59 · 1198ms
-    - 🇨🇦 CA-60 · 1204ms
-    - 🇯🇵 JP-10 · 1213ms
-    - 🇭🇰 HK-10 · 1250ms
-    - 🇭🇰 HK-11 · 1255ms
-    - 🇭🇰 HK-12 · 1282ms
-    - 🇭🇰 HK-13 · 1309ms
-    - 🇨🇦 CA-61 · 1322ms
-    - 🇭🇰 HK-14 · 1357ms
-    - 🇯🇵 JP-11 · 1367ms
-    - 🇯🇵 JP-12 · 1398ms
-    - 🇭🇰 HK-15 · 1420ms
-    - 🇯🇵 JP-13 · 1422ms
-    - 🇨🇦 CA-62 · 1440ms
-    - 🇭🇰 HK-16 · 1443ms
-    - 🇭🇰 HK-17 · 1464ms
-    - 🇭🇰 HK-18 · 1479ms
-    - 🇭🇰 HK-19 · 1538ms
-    - 🇨🇦 CA-63 · 1583ms
-    - 🇨🇦 CA-64 · 1602ms
-    - 🇰🇷 KR-06 · 1793ms
-    - 🇨🇦 CA-65 · 1817ms
-    - 🇨🇦 CA-66 · 1857ms
-    - 🇯🇵 JP-14 · 2307ms
-    - 🇯🇵 JP-15 · 2351ms
-    - 🇹🇼 TW-02 · 2773ms
-    - 🇹🇼 TW-03 · 3798ms
-    - 🇨🇦 CA-67 · 3861ms
-    - 🇰🇷 KR-07 · 4158ms
-    - 🇨🇦 CA-68 · 5809ms
-    - 🇭🇰 HK-20 · 7559ms
+    - 🇨🇦 CA-01 · 66ms
+    - 🇨🇦 CA-02 · 70ms
+    - 🇨🇦 CA-03 · 72ms
+    - 🇨🇦 CA-04 · 81ms
+    - 🇨🇦 CA-05 · 156ms
+    - 🇨🇦 CA-06 · 234ms
+    - 🇨🇦 CA-07 · 245ms
+    - 🇨🇦 CA-08 · 292ms
+    - 🇨🇦 CA-09 · 316ms
+    - 🇨🇦 CA-10 · 51ms
+    - 🇨🇦 CA-11 · 77ms
+    - 🇨🇦 CA-12 · 81ms
+    - 🇨🇦 CA-13 · 92ms
+    - 🇨🇦 CA-14 · 96ms
+    - 🇨🇦 CA-15 · 98ms
+    - 🇨🇦 CA-16 · 105ms
+    - 🇨🇦 CA-17 · 111ms
+    - 🇨🇦 CA-18 · 115ms
+    - 🇨🇦 CA-19 · 117ms
+    - 🇨🇦 CA-20 · 118ms
+    - 🇨🇦 CA-21 · 119ms
+    - 🇨🇦 CA-22 · 120ms
+    - 🇨🇦 CA-23 · 127ms
+    - 🇨🇦 CA-24 · 134ms
+    - 🇨🇦 CA-25 · 146ms
+    - 🇨🇦 CA-26 · 147ms
+    - 🇨🇦 CA-27 · 151ms
+    - 🇨🇦 CA-28 · 155ms
+    - 🇨🇦 CA-29 · 163ms
+    - 🇨🇦 CA-30 · 171ms
+    - 🇭🇰 HK-01 · 175ms
+    - 🇨🇦 CA-31 · 178ms
+    - 🇨🇦 CA-32 · 180ms
+    - 🇨🇦 CA-33 · 183ms
+    - 🇨🇦 CA-34 · 188ms
+    - 🇨🇦 CA-35 · 203ms
+    - 🇨🇦 CA-36 · 214ms
+    - 🇨🇦 CA-37 · 223ms
+    - 🇨🇦 CA-38 · 255ms
+    - 🇨🇦 CA-39 · 258ms
+    - 🇨🇦 CA-40 · 265ms
+    - 🇨🇦 CA-41 · 277ms
+    - 🇨🇦 CA-42 · 287ms
+    - 🇨🇦 CA-43 · 297ms
+    - 🇯🇵 JP-01 · 306ms
+    - 🇨🇦 CA-44 · 316ms
+    - 🇯🇵 JP-02 · 319ms
+    - 🇯🇵 JP-03 · 321ms
+    - 🇯🇵 JP-04 · 324ms
+    - 🇯🇵 JP-05 · 325ms
+    - 🇨🇦 CA-45 · 332ms
+    - 🇨🇦 CA-46 · 364ms
+    - 🇯🇵 JP-06 · 441ms
+    - 🇯🇵 JP-07 · 455ms
+    - 🇯🇵 JP-08 · 461ms
+    - 🇯🇵 JP-09 · 468ms
+    - 🇸🇬 SG-01 · 492ms
+    - 🇸🇬 SG-02 · 493ms
+    - 🇸🇬 SG-03 · 493ms
+    - 🇸🇬 SG-04 · 502ms
+    - 🇸🇬 SG-05 · 503ms
+    - 🇸🇬 SG-06 · 507ms
+    - 🇸🇬 SG-07 · 508ms
+    - 🇸🇬 SG-08 · 509ms
+    - 🇸🇬 SG-09 · 518ms
+    - 🇸🇬 SG-10 · 528ms
+    - 🇰🇷 KR-01 · 528ms
+    - 🇸🇬 SG-11 · 557ms
+    - 🇰🇷 KR-02 · 597ms
+    - 🇭🇰 HK-02 · 601ms
+    - 🇸🇬 SG-12 · 643ms
+    - 🇨🇦 CA-47 · 644ms
+    - 🇯🇵 JP-10 · 661ms
+    - 🇯🇵 JP-11 · 665ms
+    - 🇭🇰 HK-03 · 676ms
+    - 🇰🇷 KR-03 · 692ms
+    - 🇰🇷 KR-04 · 694ms
+    - 🇨🇦 CA-48 · 720ms
+    - 🇭🇰 HK-04 · 755ms
+    - 🇭🇰 HK-05 · 771ms
+    - 🇰🇷 KR-05 · 772ms
+    - 🇭🇰 HK-06 · 776ms
+    - 🇭🇰 HK-07 · 816ms
+    - 🇭🇰 HK-08 · 817ms
+    - 🇸🇬 SG-13 · 833ms
+    - 🇯🇵 JP-12 · 835ms
+    - 🇨🇦 CA-49 · 842ms
+    - 🇭🇰 HK-09 · 864ms
+    - 🇸🇬 SG-14 · 868ms
+    - 🇨🇦 CA-50 · 883ms
+    - 🇭🇰 HK-10 · 886ms
+    - 🇹🇼 TW-01 · 886ms
+    - 🇹🇼 TW-02 · 892ms
+    - 🇨🇦 CA-51 · 938ms
+    - 🇨🇦 CA-52 · 1036ms
+    - 🇸🇬 SG-15 · 1226ms
+    - 🇸🇬 SG-16 · 1357ms
+    - 🇨🇦 CA-53 · 1417ms
+    - 🇯🇵 JP-13 · 1617ms
+    - 🇭🇰 HK-11 · 1806ms
+    - 🇭🇰 HK-12 · 1939ms
+    - 🇰🇷 KR-06 · 2739ms
+    - 🇭🇰 HK-13 · 2769ms
+    - 🇭🇰 HK-14 · 2845ms
+    - 🇨🇦 CA-54 · 3215ms
+    - 🇰🇷 KR-07 · 4265ms
+    - 🇰🇷 KR-08 · 4303ms
+    - 🇭🇰 HK-15 · 4564ms
+    - 🇭🇰 HK-16 · 4655ms
+    - 🇯🇵 JP-14 · 4838ms
+    - 🇭🇰 HK-17 · 5003ms
 -
   name: ♻️ 自动选择
   type: url-test
@@ -1870,164 +1507,143 @@ proxy-groups:
   tolerance: 50
   lazy: false
   proxies:
-    - 🇨🇦 CA-01 · 68ms
-    - 🇨🇦 CA-02 · 74ms
-    - 🇨🇦 CA-03 · 91ms
-    - 🇨🇦 CA-04 · 94ms
-    - 🇨🇦 CA-05 · 98ms
-    - 🇨🇦 CA-06 · 108ms
-    - 🇨🇦 CA-07 · 109ms
-    - 🇨🇦 CA-08 · 144ms
-    - 🇨🇦 CA-09 · 173ms
-    - 🇨🇦 CA-10 · 175ms
-    - 🇨🇦 CA-11 · 58ms
-    - 🇨🇦 CA-12 · 76ms
-    - 🇨🇦 CA-13 · 79ms
-    - 🇨🇦 CA-14 · 82ms
-    - 🇭🇰 HK-01 · 85ms
-    - 🇨🇦 CA-15 · 86ms
-    - 🇨🇦 CA-16 · 87ms
-    - 🇨🇦 CA-17 · 87ms
-    - 🇨🇦 CA-18 · 87ms
-    - 🇨🇦 CA-19 · 88ms
-    - 🇭🇰 HK-02 · 88ms
-    - 🇨🇦 CA-20 · 89ms
-    - 🇨🇦 CA-21 · 92ms
-    - 🇨🇦 CA-22 · 93ms
-    - 🇨🇦 CA-23 · 93ms
-    - 🇨🇦 CA-24 · 101ms
-    - 🇨🇦 CA-25 · 103ms
-    - 🇨🇦 CA-26 · 105ms
-    - 🇨🇦 CA-27 · 112ms
-    - 🇨🇦 CA-28 · 119ms
-    - 🇨🇦 CA-29 · 120ms
-    - 🇨🇦 CA-30 · 123ms
-    - 🇨🇦 CA-31 · 129ms
-    - 🇨🇦 CA-32 · 130ms
-    - 🇨🇦 CA-33 · 132ms
-    - 🇨🇦 CA-34 · 138ms
-    - 🇨🇦 CA-35 · 143ms
-    - 🇨🇦 CA-36 · 148ms
-    - 🇨🇦 CA-37 · 156ms
-    - 🇨🇦 CA-38 · 159ms
-    - 🇨🇦 CA-39 · 159ms
-    - 🇨🇦 CA-40 · 161ms
-    - 🇭🇰 HK-03 · 162ms
-    - 🇨🇦 CA-41 · 162ms
-    - 🇨🇦 CA-42 · 168ms
-    - 🇨🇦 CA-43 · 177ms
-    - 🇨🇦 CA-44 · 177ms
-    - 🇨🇦 CA-45 · 186ms
-    - 🇨🇦 CA-46 · 324ms
-    - 🇨🇦 CA-47 · 353ms
-    - 🇨🇦 CA-48 · 360ms
-    - 🇨🇦 CA-49 · 424ms
-    - 🇨🇦 CA-50 · 461ms
-    - 🇯🇵 JP-01 · 464ms
-    - 🇯🇵 JP-02 · 464ms
-    - 🇯🇵 JP-03 · 467ms
-    - 🇯🇵 JP-04 · 497ms
-    - 🇨🇦 CA-51 · 512ms
-    - 🇨🇦 CA-52 · 544ms
-    - 🇨🇦 CA-53 · 585ms
-    - 🇨🇦 CA-54 · 601ms
-    - 🇰🇷 KR-01 · 636ms
-    - 🇨🇦 CA-55 · 639ms
-    - 🇯🇵 JP-05 · 654ms
-    - 🇯🇵 JP-06 · 665ms
-    - 🇸🇬 SG-01 · 673ms
-    - 🇸🇬 SG-02 · 678ms
-    - 🇸🇬 SG-03 · 679ms
-    - 🇸🇬 SG-04 · 681ms
-    - 🇸🇬 SG-05 · 684ms
-    - 🇸🇬 SG-06 · 686ms
-    - 🇯🇵 JP-07 · 687ms
-    - 🇸🇬 SG-07 · 688ms
-    - 🇸🇬 SG-08 · 688ms
-    - 🇸🇬 SG-09 · 689ms
-    - 🇸🇬 SG-10 · 690ms
-    - 🇸🇬 SG-11 · 691ms
-    - 🇸🇬 SG-12 · 696ms
-    - 🇸🇬 SG-13 · 698ms
-    - 🇰🇷 KR-02 · 724ms
-    - 🇰🇷 KR-03 · 795ms
-    - 🇨🇦 CA-56 · 817ms
-    - 🇰🇷 KR-04 · 828ms
-    - 🇭🇰 HK-04 · 831ms
-    - 🇯🇵 JP-08 · 835ms
-    - 🇨🇦 CA-57 · 855ms
-    - 🇭🇰 HK-05 · 891ms
-    - 🇸🇬 SG-14 · 900ms
-    - 🇭🇰 HK-06 · 907ms
-    - 🇭🇰 HK-07 · 912ms
-    - 🇸🇬 SG-15 · 920ms
-    - 🇭🇰 HK-08 · 920ms
-    - 🇸🇬 SG-16 · 925ms
-    - 🇸🇬 SG-17 · 926ms
-    - 🇯🇵 JP-09 · 927ms
-    - 🇸🇬 SG-18 · 950ms
-    - 🇰🇷 KR-05 · 959ms
-    - 🇨🇦 CA-58 · 998ms
-    - 🇭🇰 HK-09 · 1097ms
-    - 🇸🇬 SG-19 · 1126ms
-    - 🇹🇼 TW-01 · 1195ms
-    - 🇨🇦 CA-59 · 1198ms
-    - 🇨🇦 CA-60 · 1204ms
-    - 🇯🇵 JP-10 · 1213ms
-    - 🇭🇰 HK-10 · 1250ms
-    - 🇭🇰 HK-11 · 1255ms
-    - 🇭🇰 HK-12 · 1282ms
-    - 🇭🇰 HK-13 · 1309ms
-    - 🇨🇦 CA-61 · 1322ms
-    - 🇭🇰 HK-14 · 1357ms
-    - 🇯🇵 JP-11 · 1367ms
-    - 🇯🇵 JP-12 · 1398ms
-    - 🇭🇰 HK-15 · 1420ms
-    - 🇯🇵 JP-13 · 1422ms
-    - 🇨🇦 CA-62 · 1440ms
-    - 🇭🇰 HK-16 · 1443ms
-    - 🇭🇰 HK-17 · 1464ms
-    - 🇭🇰 HK-18 · 1479ms
-    - 🇭🇰 HK-19 · 1538ms
-    - 🇨🇦 CA-63 · 1583ms
-    - 🇨🇦 CA-64 · 1602ms
-    - 🇰🇷 KR-06 · 1793ms
-    - 🇨🇦 CA-65 · 1817ms
-    - 🇨🇦 CA-66 · 1857ms
-    - 🇯🇵 JP-14 · 2307ms
-    - 🇯🇵 JP-15 · 2351ms
-    - 🇹🇼 TW-02 · 2773ms
-    - 🇹🇼 TW-03 · 3798ms
-    - 🇨🇦 CA-67 · 3861ms
-    - 🇰🇷 KR-07 · 4158ms
-    - 🇨🇦 CA-68 · 5809ms
-    - 🇭🇰 HK-20 · 7559ms
+    - 🇨🇦 CA-01 · 66ms
+    - 🇨🇦 CA-02 · 70ms
+    - 🇨🇦 CA-03 · 72ms
+    - 🇨🇦 CA-04 · 81ms
+    - 🇨🇦 CA-05 · 156ms
+    - 🇨🇦 CA-06 · 234ms
+    - 🇨🇦 CA-07 · 245ms
+    - 🇨🇦 CA-08 · 292ms
+    - 🇨🇦 CA-09 · 316ms
+    - 🇨🇦 CA-10 · 51ms
+    - 🇨🇦 CA-11 · 77ms
+    - 🇨🇦 CA-12 · 81ms
+    - 🇨🇦 CA-13 · 92ms
+    - 🇨🇦 CA-14 · 96ms
+    - 🇨🇦 CA-15 · 98ms
+    - 🇨🇦 CA-16 · 105ms
+    - 🇨🇦 CA-17 · 111ms
+    - 🇨🇦 CA-18 · 115ms
+    - 🇨🇦 CA-19 · 117ms
+    - 🇨🇦 CA-20 · 118ms
+    - 🇨🇦 CA-21 · 119ms
+    - 🇨🇦 CA-22 · 120ms
+    - 🇨🇦 CA-23 · 127ms
+    - 🇨🇦 CA-24 · 134ms
+    - 🇨🇦 CA-25 · 146ms
+    - 🇨🇦 CA-26 · 147ms
+    - 🇨🇦 CA-27 · 151ms
+    - 🇨🇦 CA-28 · 155ms
+    - 🇨🇦 CA-29 · 163ms
+    - 🇨🇦 CA-30 · 171ms
+    - 🇭🇰 HK-01 · 175ms
+    - 🇨🇦 CA-31 · 178ms
+    - 🇨🇦 CA-32 · 180ms
+    - 🇨🇦 CA-33 · 183ms
+    - 🇨🇦 CA-34 · 188ms
+    - 🇨🇦 CA-35 · 203ms
+    - 🇨🇦 CA-36 · 214ms
+    - 🇨🇦 CA-37 · 223ms
+    - 🇨🇦 CA-38 · 255ms
+    - 🇨🇦 CA-39 · 258ms
+    - 🇨🇦 CA-40 · 265ms
+    - 🇨🇦 CA-41 · 277ms
+    - 🇨🇦 CA-42 · 287ms
+    - 🇨🇦 CA-43 · 297ms
+    - 🇯🇵 JP-01 · 306ms
+    - 🇨🇦 CA-44 · 316ms
+    - 🇯🇵 JP-02 · 319ms
+    - 🇯🇵 JP-03 · 321ms
+    - 🇯🇵 JP-04 · 324ms
+    - 🇯🇵 JP-05 · 325ms
+    - 🇨🇦 CA-45 · 332ms
+    - 🇨🇦 CA-46 · 364ms
+    - 🇯🇵 JP-06 · 441ms
+    - 🇯🇵 JP-07 · 455ms
+    - 🇯🇵 JP-08 · 461ms
+    - 🇯🇵 JP-09 · 468ms
+    - 🇸🇬 SG-01 · 492ms
+    - 🇸🇬 SG-02 · 493ms
+    - 🇸🇬 SG-03 · 493ms
+    - 🇸🇬 SG-04 · 502ms
+    - 🇸🇬 SG-05 · 503ms
+    - 🇸🇬 SG-06 · 507ms
+    - 🇸🇬 SG-07 · 508ms
+    - 🇸🇬 SG-08 · 509ms
+    - 🇸🇬 SG-09 · 518ms
+    - 🇸🇬 SG-10 · 528ms
+    - 🇰🇷 KR-01 · 528ms
+    - 🇸🇬 SG-11 · 557ms
+    - 🇰🇷 KR-02 · 597ms
+    - 🇭🇰 HK-02 · 601ms
+    - 🇸🇬 SG-12 · 643ms
+    - 🇨🇦 CA-47 · 644ms
+    - 🇯🇵 JP-10 · 661ms
+    - 🇯🇵 JP-11 · 665ms
+    - 🇭🇰 HK-03 · 676ms
+    - 🇰🇷 KR-03 · 692ms
+    - 🇰🇷 KR-04 · 694ms
+    - 🇨🇦 CA-48 · 720ms
+    - 🇭🇰 HK-04 · 755ms
+    - 🇭🇰 HK-05 · 771ms
+    - 🇰🇷 KR-05 · 772ms
+    - 🇭🇰 HK-06 · 776ms
+    - 🇭🇰 HK-07 · 816ms
+    - 🇭🇰 HK-08 · 817ms
+    - 🇸🇬 SG-13 · 833ms
+    - 🇯🇵 JP-12 · 835ms
+    - 🇨🇦 CA-49 · 842ms
+    - 🇭🇰 HK-09 · 864ms
+    - 🇸🇬 SG-14 · 868ms
+    - 🇨🇦 CA-50 · 883ms
+    - 🇭🇰 HK-10 · 886ms
+    - 🇹🇼 TW-01 · 886ms
+    - 🇹🇼 TW-02 · 892ms
+    - 🇨🇦 CA-51 · 938ms
+    - 🇨🇦 CA-52 · 1036ms
+    - 🇸🇬 SG-15 · 1226ms
+    - 🇸🇬 SG-16 · 1357ms
+    - 🇨🇦 CA-53 · 1417ms
+    - 🇯🇵 JP-13 · 1617ms
+    - 🇭🇰 HK-11 · 1806ms
+    - 🇭🇰 HK-12 · 1939ms
+    - 🇰🇷 KR-06 · 2739ms
+    - 🇭🇰 HK-13 · 2769ms
+    - 🇭🇰 HK-14 · 2845ms
+    - 🇨🇦 CA-54 · 3215ms
+    - 🇰🇷 KR-07 · 4265ms
+    - 🇰🇷 KR-08 · 4303ms
+    - 🇭🇰 HK-15 · 4564ms
+    - 🇭🇰 HK-16 · 4655ms
+    - 🇯🇵 JP-14 · 4838ms
+    - 🇭🇰 HK-17 · 5003ms
 -
   name: 🔯 故障转移
   type: fallback
   url: "https://www.gstatic.com/generate_204"
   interval: 300
   proxies:
-    - 🇨🇦 CA-01 · 68ms
-    - 🇨🇦 CA-02 · 74ms
-    - 🇨🇦 CA-03 · 91ms
-    - 🇨🇦 CA-04 · 94ms
-    - 🇨🇦 CA-05 · 98ms
-    - 🇨🇦 CA-06 · 108ms
-    - 🇨🇦 CA-07 · 109ms
-    - 🇨🇦 CA-08 · 144ms
-    - 🇨🇦 CA-09 · 173ms
-    - 🇨🇦 CA-10 · 175ms
-    - 🇨🇦 CA-11 · 58ms
-    - 🇨🇦 CA-12 · 76ms
-    - 🇨🇦 CA-13 · 79ms
-    - 🇨🇦 CA-14 · 82ms
-    - 🇭🇰 HK-01 · 85ms
-    - 🇨🇦 CA-15 · 86ms
-    - 🇨🇦 CA-16 · 87ms
-    - 🇨🇦 CA-17 · 87ms
-    - 🇨🇦 CA-18 · 87ms
-    - 🇨🇦 CA-19 · 88ms
+    - 🇨🇦 CA-01 · 66ms
+    - 🇨🇦 CA-02 · 70ms
+    - 🇨🇦 CA-03 · 72ms
+    - 🇨🇦 CA-04 · 81ms
+    - 🇨🇦 CA-05 · 156ms
+    - 🇨🇦 CA-06 · 234ms
+    - 🇨🇦 CA-07 · 245ms
+    - 🇨🇦 CA-08 · 292ms
+    - 🇨🇦 CA-09 · 316ms
+    - 🇨🇦 CA-10 · 51ms
+    - 🇨🇦 CA-11 · 77ms
+    - 🇨🇦 CA-12 · 81ms
+    - 🇨🇦 CA-13 · 92ms
+    - 🇨🇦 CA-14 · 96ms
+    - 🇨🇦 CA-15 · 98ms
+    - 🇨🇦 CA-16 · 105ms
+    - 🇨🇦 CA-17 · 111ms
+    - 🇨🇦 CA-18 · 115ms
+    - 🇨🇦 CA-19 · 117ms
+    - 🇨🇦 CA-20 · 118ms
 -
   name: 🇭🇰 香港
   type: url-test
@@ -2035,26 +1651,23 @@ proxy-groups:
   interval: 300
   tolerance: 50
   proxies:
-    - 🇭🇰 HK-01 · 85ms
-    - 🇭🇰 HK-02 · 88ms
-    - 🇭🇰 HK-03 · 162ms
-    - 🇭🇰 HK-04 · 831ms
-    - 🇭🇰 HK-05 · 891ms
-    - 🇭🇰 HK-06 · 907ms
-    - 🇭🇰 HK-07 · 912ms
-    - 🇭🇰 HK-08 · 920ms
-    - 🇭🇰 HK-09 · 1097ms
-    - 🇭🇰 HK-10 · 1250ms
-    - 🇭🇰 HK-11 · 1255ms
-    - 🇭🇰 HK-12 · 1282ms
-    - 🇭🇰 HK-13 · 1309ms
-    - 🇭🇰 HK-14 · 1357ms
-    - 🇭🇰 HK-15 · 1420ms
-    - 🇭🇰 HK-16 · 1443ms
-    - 🇭🇰 HK-17 · 1464ms
-    - 🇭🇰 HK-18 · 1479ms
-    - 🇭🇰 HK-19 · 1538ms
-    - 🇭🇰 HK-20 · 7559ms
+    - 🇭🇰 HK-01 · 175ms
+    - 🇭🇰 HK-02 · 601ms
+    - 🇭🇰 HK-03 · 676ms
+    - 🇭🇰 HK-04 · 755ms
+    - 🇭🇰 HK-05 · 771ms
+    - 🇭🇰 HK-06 · 776ms
+    - 🇭🇰 HK-07 · 816ms
+    - 🇭🇰 HK-08 · 817ms
+    - 🇭🇰 HK-09 · 864ms
+    - 🇭🇰 HK-10 · 886ms
+    - 🇭🇰 HK-11 · 1806ms
+    - 🇭🇰 HK-12 · 1939ms
+    - 🇭🇰 HK-13 · 2769ms
+    - 🇭🇰 HK-14 · 2845ms
+    - 🇭🇰 HK-15 · 4564ms
+    - 🇭🇰 HK-16 · 4655ms
+    - 🇭🇰 HK-17 · 5003ms
 -
   name: 🇹🇼 台湾
   type: url-test
@@ -2062,9 +1675,8 @@ proxy-groups:
   interval: 300
   tolerance: 50
   proxies:
-    - 🇹🇼 TW-01 · 1195ms
-    - 🇹🇼 TW-02 · 2773ms
-    - 🇹🇼 TW-03 · 3798ms
+    - 🇹🇼 TW-01 · 886ms
+    - 🇹🇼 TW-02 · 892ms
 -
   name: 🇯🇵 日本
   type: url-test
@@ -2072,21 +1684,20 @@ proxy-groups:
   interval: 300
   tolerance: 50
   proxies:
-    - 🇯🇵 JP-01 · 464ms
-    - 🇯🇵 JP-02 · 464ms
-    - 🇯🇵 JP-03 · 467ms
-    - 🇯🇵 JP-04 · 497ms
-    - 🇯🇵 JP-05 · 654ms
-    - 🇯🇵 JP-06 · 665ms
-    - 🇯🇵 JP-07 · 687ms
-    - 🇯🇵 JP-08 · 835ms
-    - 🇯🇵 JP-09 · 927ms
-    - 🇯🇵 JP-10 · 1213ms
-    - 🇯🇵 JP-11 · 1367ms
-    - 🇯🇵 JP-12 · 1398ms
-    - 🇯🇵 JP-13 · 1422ms
-    - 🇯🇵 JP-14 · 2307ms
-    - 🇯🇵 JP-15 · 2351ms
+    - 🇯🇵 JP-01 · 306ms
+    - 🇯🇵 JP-02 · 319ms
+    - 🇯🇵 JP-03 · 321ms
+    - 🇯🇵 JP-04 · 324ms
+    - 🇯🇵 JP-05 · 325ms
+    - 🇯🇵 JP-06 · 441ms
+    - 🇯🇵 JP-07 · 455ms
+    - 🇯🇵 JP-08 · 461ms
+    - 🇯🇵 JP-09 · 468ms
+    - 🇯🇵 JP-10 · 661ms
+    - 🇯🇵 JP-11 · 665ms
+    - 🇯🇵 JP-12 · 835ms
+    - 🇯🇵 JP-13 · 1617ms
+    - 🇯🇵 JP-14 · 4838ms
 -
   name: 🇸🇬 新加坡
   type: url-test
@@ -2094,25 +1705,22 @@ proxy-groups:
   interval: 300
   tolerance: 50
   proxies:
-    - 🇸🇬 SG-01 · 673ms
-    - 🇸🇬 SG-02 · 678ms
-    - 🇸🇬 SG-03 · 679ms
-    - 🇸🇬 SG-04 · 681ms
-    - 🇸🇬 SG-05 · 684ms
-    - 🇸🇬 SG-06 · 686ms
-    - 🇸🇬 SG-07 · 688ms
-    - 🇸🇬 SG-08 · 688ms
-    - 🇸🇬 SG-09 · 689ms
-    - 🇸🇬 SG-10 · 690ms
-    - 🇸🇬 SG-11 · 691ms
-    - 🇸🇬 SG-12 · 696ms
-    - 🇸🇬 SG-13 · 698ms
-    - 🇸🇬 SG-14 · 900ms
-    - 🇸🇬 SG-15 · 920ms
-    - 🇸🇬 SG-16 · 925ms
-    - 🇸🇬 SG-17 · 926ms
-    - 🇸🇬 SG-18 · 950ms
-    - 🇸🇬 SG-19 · 1126ms
+    - 🇸🇬 SG-01 · 492ms
+    - 🇸🇬 SG-02 · 493ms
+    - 🇸🇬 SG-03 · 493ms
+    - 🇸🇬 SG-04 · 502ms
+    - 🇸🇬 SG-05 · 503ms
+    - 🇸🇬 SG-06 · 507ms
+    - 🇸🇬 SG-07 · 508ms
+    - 🇸🇬 SG-08 · 509ms
+    - 🇸🇬 SG-09 · 518ms
+    - 🇸🇬 SG-10 · 528ms
+    - 🇸🇬 SG-11 · 557ms
+    - 🇸🇬 SG-12 · 643ms
+    - 🇸🇬 SG-13 · 833ms
+    - 🇸🇬 SG-14 · 868ms
+    - 🇸🇬 SG-15 · 1226ms
+    - 🇸🇬 SG-16 · 1357ms
 -
   name: 🇰🇷 韩国
   type: url-test
@@ -2120,13 +1728,14 @@ proxy-groups:
   interval: 300
   tolerance: 50
   proxies:
-    - 🇰🇷 KR-01 · 636ms
-    - 🇰🇷 KR-02 · 724ms
-    - 🇰🇷 KR-03 · 795ms
-    - 🇰🇷 KR-04 · 828ms
-    - 🇰🇷 KR-05 · 959ms
-    - 🇰🇷 KR-06 · 1793ms
-    - 🇰🇷 KR-07 · 4158ms
+    - 🇰🇷 KR-01 · 528ms
+    - 🇰🇷 KR-02 · 597ms
+    - 🇰🇷 KR-03 · 692ms
+    - 🇰🇷 KR-04 · 694ms
+    - 🇰🇷 KR-05 · 772ms
+    - 🇰🇷 KR-06 · 2739ms
+    - 🇰🇷 KR-07 · 4265ms
+    - 🇰🇷 KR-08 · 4303ms
 -
   name: 🌍 其他
   type: url-test
@@ -2134,74 +1743,60 @@ proxy-groups:
   interval: 300
   tolerance: 50
   proxies:
-    - 🇨🇦 CA-01 · 68ms
-    - 🇨🇦 CA-02 · 74ms
-    - 🇨🇦 CA-03 · 91ms
-    - 🇨🇦 CA-04 · 94ms
-    - 🇨🇦 CA-05 · 98ms
-    - 🇨🇦 CA-06 · 108ms
-    - 🇨🇦 CA-07 · 109ms
-    - 🇨🇦 CA-08 · 144ms
-    - 🇨🇦 CA-09 · 173ms
-    - 🇨🇦 CA-10 · 175ms
-    - 🇨🇦 CA-11 · 58ms
-    - 🇨🇦 CA-12 · 76ms
-    - 🇨🇦 CA-13 · 79ms
-    - 🇨🇦 CA-14 · 82ms
-    - 🇨🇦 CA-15 · 86ms
-    - 🇨🇦 CA-16 · 87ms
-    - 🇨🇦 CA-17 · 87ms
-    - 🇨🇦 CA-18 · 87ms
-    - 🇨🇦 CA-19 · 88ms
-    - 🇨🇦 CA-20 · 89ms
-    - 🇨🇦 CA-21 · 92ms
-    - 🇨🇦 CA-22 · 93ms
-    - 🇨🇦 CA-23 · 93ms
-    - 🇨🇦 CA-24 · 101ms
-    - 🇨🇦 CA-25 · 103ms
-    - 🇨🇦 CA-26 · 105ms
-    - 🇨🇦 CA-27 · 112ms
-    - 🇨🇦 CA-28 · 119ms
-    - 🇨🇦 CA-29 · 120ms
-    - 🇨🇦 CA-30 · 123ms
-    - 🇨🇦 CA-31 · 129ms
-    - 🇨🇦 CA-32 · 130ms
-    - 🇨🇦 CA-33 · 132ms
-    - 🇨🇦 CA-34 · 138ms
-    - 🇨🇦 CA-35 · 143ms
-    - 🇨🇦 CA-36 · 148ms
-    - 🇨🇦 CA-37 · 156ms
-    - 🇨🇦 CA-38 · 159ms
-    - 🇨🇦 CA-39 · 159ms
-    - 🇨🇦 CA-40 · 161ms
-    - 🇨🇦 CA-41 · 162ms
-    - 🇨🇦 CA-42 · 168ms
-    - 🇨🇦 CA-43 · 177ms
-    - 🇨🇦 CA-44 · 177ms
-    - 🇨🇦 CA-45 · 186ms
-    - 🇨🇦 CA-46 · 324ms
-    - 🇨🇦 CA-47 · 353ms
-    - 🇨🇦 CA-48 · 360ms
-    - 🇨🇦 CA-49 · 424ms
-    - 🇨🇦 CA-50 · 461ms
-    - 🇨🇦 CA-51 · 512ms
-    - 🇨🇦 CA-52 · 544ms
-    - 🇨🇦 CA-53 · 585ms
-    - 🇨🇦 CA-54 · 601ms
-    - 🇨🇦 CA-55 · 639ms
-    - 🇨🇦 CA-56 · 817ms
-    - 🇨🇦 CA-57 · 855ms
-    - 🇨🇦 CA-58 · 998ms
-    - 🇨🇦 CA-59 · 1198ms
-    - 🇨🇦 CA-60 · 1204ms
-    - 🇨🇦 CA-61 · 1322ms
-    - 🇨🇦 CA-62 · 1440ms
-    - 🇨🇦 CA-63 · 1583ms
-    - 🇨🇦 CA-64 · 1602ms
-    - 🇨🇦 CA-65 · 1817ms
-    - 🇨🇦 CA-66 · 1857ms
-    - 🇨🇦 CA-67 · 3861ms
-    - 🇨🇦 CA-68 · 5809ms
+    - 🇨🇦 CA-01 · 66ms
+    - 🇨🇦 CA-02 · 70ms
+    - 🇨🇦 CA-03 · 72ms
+    - 🇨🇦 CA-04 · 81ms
+    - 🇨🇦 CA-05 · 156ms
+    - 🇨🇦 CA-06 · 234ms
+    - 🇨🇦 CA-07 · 245ms
+    - 🇨🇦 CA-08 · 292ms
+    - 🇨🇦 CA-09 · 316ms
+    - 🇨🇦 CA-10 · 51ms
+    - 🇨🇦 CA-11 · 77ms
+    - 🇨🇦 CA-12 · 81ms
+    - 🇨🇦 CA-13 · 92ms
+    - 🇨🇦 CA-14 · 96ms
+    - 🇨🇦 CA-15 · 98ms
+    - 🇨🇦 CA-16 · 105ms
+    - 🇨🇦 CA-17 · 111ms
+    - 🇨🇦 CA-18 · 115ms
+    - 🇨🇦 CA-19 · 117ms
+    - 🇨🇦 CA-20 · 118ms
+    - 🇨🇦 CA-21 · 119ms
+    - 🇨🇦 CA-22 · 120ms
+    - 🇨🇦 CA-23 · 127ms
+    - 🇨🇦 CA-24 · 134ms
+    - 🇨🇦 CA-25 · 146ms
+    - 🇨🇦 CA-26 · 147ms
+    - 🇨🇦 CA-27 · 151ms
+    - 🇨🇦 CA-28 · 155ms
+    - 🇨🇦 CA-29 · 163ms
+    - 🇨🇦 CA-30 · 171ms
+    - 🇨🇦 CA-31 · 178ms
+    - 🇨🇦 CA-32 · 180ms
+    - 🇨🇦 CA-33 · 183ms
+    - 🇨🇦 CA-34 · 188ms
+    - 🇨🇦 CA-35 · 203ms
+    - 🇨🇦 CA-36 · 214ms
+    - 🇨🇦 CA-37 · 223ms
+    - 🇨🇦 CA-38 · 255ms
+    - 🇨🇦 CA-39 · 258ms
+    - 🇨🇦 CA-40 · 265ms
+    - 🇨🇦 CA-41 · 277ms
+    - 🇨🇦 CA-42 · 287ms
+    - 🇨🇦 CA-43 · 297ms
+    - 🇨🇦 CA-44 · 316ms
+    - 🇨🇦 CA-45 · 332ms
+    - 🇨🇦 CA-46 · 364ms
+    - 🇨🇦 CA-47 · 644ms
+    - 🇨🇦 CA-48 · 720ms
+    - 🇨🇦 CA-49 · 842ms
+    - 🇨🇦 CA-50 · 883ms
+    - 🇨🇦 CA-51 · 938ms
+    - 🇨🇦 CA-52 · 1036ms
+    - 🇨🇦 CA-53 · 1417ms
+    - 🇨🇦 CA-54 · 3215ms
 -
   name: 🎯 全球直连
   type: select
