@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-11-27 03:42:54 +0000",
-  "candidates": 3318,
-  "prefilter_alive": 505,
-  "verified_both_ok": 147,
-  "verified_dead": 23,
+  "generated_at": "2026-11-28 03:23:06 +0000",
+  "candidates": 3484,
+  "prefilter_alive": 397,
+  "verified_both_ok": 136,
+  "verified_dead": 33,
   "carry_loaded": 60,
   "cn_probe": {
     "enabled": false,
@@ -17,5 +17,5 @@
     "gate_ms": 120
   },
   "coverage": null,
-  "final": 144
+  "final": 134
 }
